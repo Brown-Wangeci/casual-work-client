@@ -1,0 +1,489 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "username": "sarah_martinez",
+      "email": "sarah.martinez@strathmore.edu",
+      "phone": "+254712345678",
+      "profilePicture": "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=400&h=400&fit=crop&crop=faces",
+      "rating": 4.8,
+      "tasksPosted": 12,
+      "tasksCompleted": 8,
+      "tasker": true,
+      "createdAt": "2025-03-15T09:30:00.000Z",
+      "updatedAt": "2025-06-03T14:22:00.000Z"
+    },
+    {
+      "id": "2",
+      "username": "mike_johnson",
+      "email": "mike.johnson@strathmore.edu",
+      "phone": "+254723456789",
+      "profilePicture": "https://images.unsplash.com/photo-1590080877038-5c4c5edc1df9?w=400&h=400&fit=crop&crop=faces",
+      "rating": 4.2,
+      "tasksPosted": 5,
+      "tasksCompleted": 15,
+      "tasker": true,
+      "createdAt": "2025-02-20T11:45:00.000Z",
+      "updatedAt": "2025-06-03T16:10:00.000Z"
+    },
+    {
+      "id": "3",
+      "username": "emma_chen",
+      "email": "emma.chen@strathmore.edu",
+      "phone": "+254734567890",
+      "profilePicture": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=faces",
+      "rating": 4.9,
+      "tasksPosted": 8,
+      "tasksCompleted": 22,
+      "tasker": true,
+      "createdAt": "2025-01-10T08:15:00.000Z",
+      "updatedAt": "2025-06-03T13:45:00.000Z"
+    },
+    {
+      "id": "4",
+      "username": "david_wilson",
+      "email": "david.wilson@strathmore.edu",
+      "phone": "+254745678901",
+      "profilePicture": "https://images.unsplash.com/photo-1614288039396-f2f207865f3b?w=400&h=400&fit=crop&crop=faces",
+      "rating": 3.7,
+      "tasksPosted": 15,
+      "tasksCompleted": 3,
+      "tasker": false,
+      "createdAt": "2025-04-05T12:30:00.000Z",
+      "updatedAt": "2025-06-03T15:20:00.000Z"
+    },
+    {
+      "id": "5",
+      "username": "lisa_brown",
+      "email": "lisa.brown@strathmore.edu",
+      "phone": "+254756789012",
+      "profilePicture": "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&h=400&fit=crop&crop=faces",
+      "rating": 4.6,
+      "tasksPosted": 6,
+      "tasksCompleted": 11,
+      "tasker": true,
+      "createdAt": "2025-03-01T10:20:00.000Z",
+      "updatedAt": "2025-06-03T12:35:00.000Z"
+    },
+    {
+      "id": "6",
+      "username": "alex_rodriguez",
+      "email": "alex.rodriguez@strathmore.edu",
+      "phone": "+254767890123",
+      "profilePicture": "https://images.unsplash.com/photo-1603415526960-f7e0328b1525?w=400&h=400&fit=crop&crop=faces",
+      "rating": 4.3,
+      "tasksPosted": 9,
+      "tasksCompleted": 7,
+      "tasker": true,
+      "createdAt": "2025-02-14T14:00:00.000Z",
+      "updatedAt": "2025-06-03T17:15:00.000Z"
+    },
+    {
+      "id": "7",
+      "username": "jessica_taylor",
+      "email": "jessica.taylor@strathmore.edu",
+      "phone": "+254778901234",
+      "profilePicture": "https://images.unsplash.com/photo-1614288039396-1f199b5d0735?w=400&h=400&fit=crop&crop=faces",
+      "rating": 4.1,
+      "tasksPosted": 4,
+      "tasksCompleted": 9,
+      "tasker": true,
+      "createdAt": "2025-04-20T16:45:00.000Z",
+      "updatedAt": "2025-06-03T11:50:00.000Z"
+    },
+    {
+      "id": "8",
+      "username": "carlos_garcia",
+      "email": "carlos.garcia@strathmore.edu",
+      "phone": "+254789012345",
+      "profilePicture": "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=400&h=400&fit=crop&crop=faces",
+      "rating": 3.9,
+      "tasksPosted": 11,
+      "tasksCompleted": 5,
+      "tasker": false,
+      "createdAt": "2025-01-25T13:10:00.000Z",
+      "updatedAt": "2025-06-03T14:40:00.000Z"
+    },
+    {
+      "id": "9",
+      "username": "amanda_white",
+      "email": "amanda.white@strathmore.edu",
+      "phone": "+254790123456",
+      "profilePicture": "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=400&fit=crop&crop=faces",
+      "rating": 4.7,
+      "tasksPosted": 7,
+      "tasksCompleted": 13,
+      "tasker": true,
+      "createdAt": "2025-03-30T09:25:00.000Z",
+      "updatedAt": "2025-06-03T16:30:00.000Z"
+    },
+    {
+      "id": "10",
+      "username": "ryan_thompson",
+      "email": "ryan.thompson@strathmore.edu",
+      "phone": "+254701234567",
+      "profilePicture": "https://images.unsplash.com/photo-1628890927110-1e2c84f04ec5?w=400&h=400&fit=crop&crop=faces",
+      "rating": 4.4,
+      "tasksPosted": 3,
+      "tasksCompleted": 18,
+      "tasker": true,
+      "createdAt": "2025-02-08T15:55:00.000Z",
+      "updatedAt": "2025-06-03T13:20:00.000Z"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Grocery Shopping at Whole Foods",
+      "description": "Need someone to pick up groceries from my shopping list. About 20 items including fresh produce, dairy, and pantry staples. List will be provided.",
+      "category": "Errands & Shopping",
+      "location": "Westlands, Nairobi",
+      "offer": 120,
+      "status": "pending",
+      "taskPoster": 4,
+      "taskersApplied": [
+        1,
+        2
+      ],
+      "taskerAssigned": null,
+      "createdAt": "2025-06-03T08:30:00.000Z",
+      "updatedAt": "2025-06-03T08:30:00.000Z"
+    },
+    {
+      "id": "2",
+      "title": "Deep Clean 2-Bedroom Apartment",
+      "description": "Looking for thorough cleaning of my apartment including kitchen, bathrooms, living areas, and bedrooms. All cleaning supplies provided.",
+      "category": "Cleaning & House Help",
+      "location": "Kilimani, Nairobi",
+      "offer": 250,
+      "status": "in_progress",
+      "taskPoster": 8,
+      "taskersApplied": [
+        3,
+        5,
+        9
+      ],
+      "taskerAssigned": 3,
+      "createdAt": "2025-06-03T07:15:00.000Z",
+      "updatedAt": "2025-06-03T10:45:00.000Z"
+    },
+    {
+      "id": "3",
+      "title": "Help Set Up Smart TV and Sound System",
+      "description": "Need assistance connecting new 65-inch TV, soundbar, and streaming devices. Some cable management required.",
+      "category": "Tech Help",
+      "location": "Karen, Nairobi",
+      "offer": 180,
+      "status": "completed",
+      "taskPoster": 7,
+      "taskersApplied": [
+        6,
+        10
+      ],
+      "taskerAssigned": 10,
+      "createdAt": "2025-06-03T09:00:00.000Z",
+      "updatedAt": "2025-06-03T15:30:00.000Z"
+    },
+    {
+      "id": "4",
+      "title": "Birthday Party Setup and Cleanup",
+      "description": "Help setting up decorations, tables, and chairs for kids birthday party. Also need help with cleanup afterward. Party is 2-6 PM.",
+      "category": "Event Assistance",
+      "location": "Lavington, Nairobi",
+      "offer": 220,
+      "status": "pending",
+      "taskPoster": 5,
+      "taskersApplied": [
+        1
+      ],
+      "taskerAssigned": null,
+      "createdAt": "2025-06-03T06:45:00.000Z",
+      "updatedAt": "2025-06-03T12:20:00.000Z"
+    },
+    {
+      "id": "5",
+      "title": "Pick up Prescription and Dry Cleaning",
+      "description": "Need someone to pick up prescription from pharmacy and dry cleaning from nearby cleaners. Both locations within Nairobi CBD.",
+      "category": "Delivery & Pickups",
+      "location": "CBD, Nairobi",
+      "offer": 80,
+      "status": "in_progress",
+      "taskPoster": 9,
+      "taskersApplied": [
+        2,
+        4
+      ],
+      "taskerAssigned": 2,
+      "createdAt": "2025-06-03T11:30:00.000Z",
+      "updatedAt": "2025-06-03T14:15:00.000Z"
+    },
+    {
+      "id": "6",
+      "title": "Assemble IKEA Furniture",
+      "description": "Need help assembling a desk, bookshelf, and dresser from IKEA. All tools will be provided. Estimated 3-4 hours of work.",
+      "category": "Other",
+      "location": "Runda, Nairobi",
+      "offer": 300,
+      "status": "pending",
+      "taskPoster": 10,
+      "taskersApplied": [
+        6,
+        8,
+        7
+      ],
+      "taskerAssigned": null,
+      "createdAt": "2025-06-03T13:15:00.000Z",
+      "updatedAt": "2025-06-03T13:15:00.000Z"
+    },
+    {
+      "id": "7",
+      "title": "Weekly House Cleaning Service",
+      "description": "Looking for regular weekly cleaning service. 3-bedroom house, includes bathrooms, kitchen, living areas, and light organizing.",
+      "category": "Cleaning & House Help",
+      "location": "Upperhill, Nairobi",
+      "offer": 320,
+      "status": "pending",
+      "taskPoster": 1,
+      "taskersApplied": [
+        3,
+        5
+      ],
+      "taskerAssigned": null,
+      "createdAt": "2025-06-03T10:00:00.000Z",
+      "updatedAt": "2025-06-03T16:45:00.000Z"
+    },
+    {
+      "id": "8",
+      "title": "Computer Virus Removal and Tune-up",
+      "description": "Laptop running slowly, possible malware. Need computer cleaned up, antivirus installed, and general performance optimization.",
+      "category": "Tech Help",
+      "location": "Parklands, Nairobi",
+      "offer": 140,
+      "status": "completed",
+      "taskPoster": 2,
+      "taskersApplied": [
+        10,
+        6
+      ],
+      "taskerAssigned": 6,
+      "createdAt": "2025-06-03T08:45:00.000Z",
+      "updatedAt": "2025-06-03T17:20:00.000Z"
+    },
+    {
+      "id": "9",
+      "title": "Move Furniture to Storage Unit",
+      "description": "Need help moving furniture from apartment to storage unit. Have truck, just need strong person to help load/unload. About 2 hours work.",
+      "category": "Other",
+      "location": "Ngong Road, Nairobi",
+      "offer": 160,
+      "status": "cancelled",
+      "taskPoster": 3,
+      "taskersApplied": [
+        2
+      ],
+      "taskerAssigned": null,
+      "createdAt": "2025-06-03T07:30:00.000Z",
+      "updatedAt": "2025-06-03T11:15:00.000Z"
+    },
+    {
+      "id": "10",
+      "title": "Wait for Appliance Delivery",
+      "description": "Need someone to wait at my apartment from 12-5 PM for washer/dryer delivery. Just need to be present to sign for delivery.",
+      "category": "Delivery & Pickups",
+      "location": "South B, Nairobi",
+      "offer": 100,
+      "status": "pending",
+      "taskPoster": 6,
+      "taskersApplied": null,
+      "taskerAssigned": null,
+      "createdAt": "2025-06-03T09:20:00.000Z",
+      "updatedAt": "2025-06-03T09:20:00.000Z"
+    },
+    {
+      "id": "11",
+      "title": "Return Items to Multiple Stores",
+      "description": "Need help returning items to Carrefour, Game, and Nakumatt. All items have receipts. Stores are in same mall.",
+      "category": "Errands & Shopping",
+      "location": "Junction Mall, Nairobi",
+      "offer": 110,
+      "status": "in_progress",
+      "taskPoster": 7,
+      "taskersApplied": [
+        5,
+        9
+      ],
+      "taskerAssigned": 9,
+      "createdAt": "2025-06-03T12:10:00.000Z",
+      "updatedAt": "2025-06-03T15:45:00.000Z"
+    },
+    {
+      "id": "12",
+      "title": "Wedding Reception Cleanup Crew",
+      "description": "Need 2-3 people to help clean up after wedding reception. Taking down decorations, clearing tables, basic cleanup. 4 hours estimated.",
+      "category": "Event Assistance",
+      "location": "Muthaiga, Nairobi",
+      "offer": 450,
+      "status": "pending",
+      "taskPoster": 8,
+      "taskersApplied": [
+        1,
+        2,
+        10
+      ],
+      "taskerAssigned": null,
+      "createdAt": "2025-06-03T14:30:00.000Z",
+      "updatedAt": "2025-06-03T14:30:00.000Z"
+    },
+    {
+      "id": "13",
+      "title": "Organize and Clean Garage",
+      "description": "2-car garage needs organizing and cleaning. Help sorting items, some lifting required. Will provide storage containers and cleaning supplies.",
+      "category": "Cleaning & House Help",
+      "location": "Kileleshwa, Nairobi",
+      "offer": 240,
+      "status": "pending",
+      "taskPoster": 9,
+      "taskersApplied": [
+        3
+      ],
+      "taskerAssigned": null,
+      "createdAt": "2025-06-03T11:45:00.000Z",
+      "updatedAt": "2025-06-03T16:20:00.000Z"
+    },
+    {
+      "id": "14",
+      "title": "Set Up Home Office Network",
+      "description": "Need help setting up ethernet connections, WiFi extender, and configuring printer for home office. Some cable routing required.",
+      "category": "Tech Help",
+      "location": "Ridgeways, Nairobi",
+      "offer": 200,
+      "status": "completed",
+      "taskPoster": 4,
+      "taskersApplied": [
+        10
+      ],
+      "taskerAssigned": 10,
+      "createdAt": "2025-06-03T08:00:00.000Z",
+      "updatedAt": "2025-06-03T14:50:00.000Z"
+    },
+    {
+      "id": "15",
+      "title": "Pick Up Catering Order and Deliver",
+      "description": "Pick up catering order from restaurant and deliver to office building downtown. Order will be ready at 11:30 AM, needs to arrive by 12:00 PM.",
+      "category": "Delivery & Pickups",
+      "location": "CBD to Upperhill, Nairobi",
+      "offer": 130,
+      "status": "completed",
+      "taskPoster": 5,
+      "taskersApplied": [
+        1,
+        6
+      ],
+      "taskerAssigned": 1,
+      "createdAt": "2025-06-03T06:30:00.000Z",
+      "updatedAt": "2025-06-03T12:45:00.000Z"
+    },
+    {
+      "id": "16",
+      "title": "Shop for Elderly Neighbor",
+      "description": "Weekly grocery shopping for elderly neighbor. Need someone reliable and trustworthy. Shopping list and payment method provided.",
+      "category": "Errands & Shopping",
+      "location": "Hurlingham, Nairobi",
+      "offer": 100,
+      "status": "in_progress",
+      "taskPoster": 10,
+      "taskersApplied": [
+        3,
+        7
+      ],
+      "taskerAssigned": 3,
+      "createdAt": "2025-06-03T09:45:00.000Z",
+      "updatedAt": "2025-06-03T13:10:00.000Z"
+    },
+    {
+      "id": "17",
+      "title": "Dog Walking and Pet Sitting",
+      "description": "Need someone to walk my dog twice and feed him while I'm at work. 8 AM - 6 PM. Dog is friendly and well-behaved.",
+      "category": "Other",
+      "location": "Spring Valley, Nairobi",
+      "offer": 180,
+      "status": "pending",
+      "taskPoster": 3,
+      "taskersApplied": [
+        5,
+        9,
+        7
+      ],
+      "taskerAssigned": null,
+      "createdAt": "2025-06-03T07:00:00.000Z",
+      "updatedAt": "2025-06-03T15:25:00.000Z"
+    },
+    {
+      "id": "18",
+      "title": "Install Smart Home Devices",
+      "description": "Help installing smart doorbell, security cameras, and smart light switches. Some basic electrical work required.",
+      "category": "Tech Help",
+      "location": "Nyari, Nairobi",
+      "offer": 260,
+      "status": "pending",
+      "taskPoster": 2,
+      "taskersApplied": [
+        6,
+        10
+      ],
+      "taskerAssigned": null,
+      "createdAt": "2025-06-03T13:45:00.000Z",
+      "updatedAt": "2025-06-03T13:45:00.000Z"
+    },
+    {
+      "id": "19",
+      "title": "Corporate Event Setup",
+      "description": "Help setting up chairs, tables, AV equipment, and decorations for corporate meeting. Event is tomorrow 7 AM - 9 AM setup.",
+      "category": "Event Assistance",
+      "location": "Gigiri, Nairobi",
+      "offer": 200,
+      "status": "pending",
+      "taskPoster": 6,
+      "taskersApplied": [
+        1,
+        2
+      ],
+      "taskerAssigned": null,
+      "createdAt": "2025-06-03T16:15:00.000Z",
+      "updatedAt": "2025-06-03T16:15:00.000Z"
+    },
+    {
+      "id": "20",
+      "title": "Airport Pickup and Drop-off",
+      "description": "Need ride to JKIA early morning (5 AM pickup) and return pickup 3 days later. Will provide fuel money plus task payment.",
+      "category": "Delivery & Pickups",
+      "location": "JKIA to/from Westlands",
+      "offer": 150,
+      "status": "cancelled",
+      "taskPoster": 7,
+      "taskersApplied": [
+        4
+      ],
+      "taskerAssigned": null,
+      "createdAt": "2025-06-03T14:00:00.000Z",
+      "updatedAt": "2025-06-03T17:10:00.000Z"
+    },
+    {
+      "id": "21",
+      "title": "Weekly Lawn Mowing and Gardening",
+      "description": "Need lawn mowed and basic gardening done. Small yard, about 1 hour of work.",
+      "category": "Cleaning & House Help",
+      "location": "Lang'ata, Nairobi",
+      "offer": 90,
+      "status": "pending",
+      "taskPoster": 8,
+      "taskersApplied": [
+        2,
+        5
+      ],
+      "taskerAssigned": null,
+      "createdAt": "2025-06-03T12:00:00.000Z",
+      "updatedAt": "2025-06-03T12:00:00.000Z"
+    }
+  ]
+}

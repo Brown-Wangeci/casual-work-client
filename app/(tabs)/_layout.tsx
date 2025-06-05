@@ -1,45 +1,71 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform } from 'react-native';
+import { StyleSheet } from 'react-native'
+import { Tabs } from 'expo-router'
+import colors from '@/constants/Colors'
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen'
+import { Ionicons } from '@expo/vector-icons'
 
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+const TabsLayout = () => {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
+          tabBarStyle: {
+              backgroundColor: colors.bg,
+              borderTopColor: colors.component.stroke,
+              borderTopWidth: 0.5,
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: hp('8%'),
           },
-          default: {},
-        }),
-      }}>
+          tabBarActiveTintColor: colors.tabIconSelected,
+          tabBarInactiveTintColor: colors.tabIconDefault,
+          headerShown: false,
+          tabBarLabelStyle: {
+              fontFamily: 'poppins-medium',
+              fontSize: 12,
+          },
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name="dashboard"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "home" : "home-outline"} size={24} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="post-task"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Post Task',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "add-circle" : "add-circle-outline"} size={24} color={color} />
+          ),
         }}
       />
+      <Tabs.Screen
+        name="task-feed"
+        options={{
+          title: 'Task Feed',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "list" : "list-outline"} size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "person" : "person-outline"} size={24} color={color} />
+          ),
+        }}
+      />
+
     </Tabs>
-  );
+  )
 }
+
+export default TabsLayout
+
+const styles = StyleSheet.create({})
