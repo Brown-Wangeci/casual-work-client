@@ -1,14 +1,14 @@
 import { FlatList, StyleSheet, Text } from 'react-native'
 import { useEffect, useState } from 'react'
-import ScreenWrapper from '@/components/layout/screen-wrapper'
 import CustomHeader from '@/components/layout/CustomHeader'
-import ContentWrapper from '@/components/layout/content-wrapper'
+import ContentWrapper from '@/components/layout/ContentWrapper'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
 import { moderateScale } from 'react-native-size-matters'
 import { Task } from '@/constants/Types'
-import axios from 'axios'
 import colors from '@/constants/Colors'
 import TaskFeedCard from '@/components/screens/task-feed/TaskFeedCard'
+import ScreenBackground from '@/components/layout/ScreenBackground'
+import api from '@/lib/axios'
 
 const TaskFeedScreen = () => {
 
@@ -21,7 +21,7 @@ const TaskFeedScreen = () => {
   const fetchTasks = async () => {
     setIsLoading(true)
     try {
-      const response = await axios.get('http://192.168.100.244:3001/tasks?status=pending')
+      const response = await api.get(`/tasks?status=pending`)
       setTasks(response.data)
       setError(null)
       } catch (error) {
@@ -51,7 +51,7 @@ const TaskFeedScreen = () => {
 
 
   return (
-    <ScreenWrapper>
+    <ScreenBackground>
       <CustomHeader title='Available Tasks' />
         <ContentWrapper style={styles.container}>
           { isLoading ? (
@@ -72,7 +72,7 @@ const TaskFeedScreen = () => {
               <Text style={{ fontSize: moderateScale(16), color: '#888' }}>No tasks available</Text>
             )}
         </ContentWrapper>
-    </ScreenWrapper>
+    </ScreenBackground>
   )
 }
 

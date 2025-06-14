@@ -1,4 +1,8 @@
 import { Status } from "@/constants/Types";
+import { Alert } from "react-native";
+import axios from 'axios';
+
+const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
 export const calculateProgress = (status: Status ): number => {
     switch (status) {
@@ -29,3 +33,46 @@ export const formatStatus = (status: Status): string => {
             return 'Unknown Status';
     }
 }
+
+
+export const confirmAction = (
+  message: string,
+  onConfirm: () => void,
+  onCancel?: () => void
+): void => {
+  Alert.alert(
+    'Confirm Action',
+    message,
+    [
+      {
+        text: 'Cancel',
+        onPress: () => {
+          onCancel?.();
+        },
+        style: 'cancel',
+      },
+      {
+        text: 'Yes',
+        onPress: () => {
+          onConfirm();
+          console.log('User confirmed action');
+        },
+      },
+    ],
+    { cancelable: true }
+  );
+};
+
+
+export const validateToken = async (token: string) => {
+  try {
+    const response = await axios.get(`${apiUrl}/auth/validate-token`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.status === 200;
+  } catch {
+    return false;
+  }
+};

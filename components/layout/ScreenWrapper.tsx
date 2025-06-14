@@ -1,3 +1,4 @@
+import colors from '@/constants/Colors';
 import { ReactNode } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -34,6 +35,6 @@ export default ScreenWrapper;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#171717',
+    backgroundColor: colors.bg,
   },
 });

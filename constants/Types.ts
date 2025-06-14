@@ -15,14 +15,6 @@ type Task = {
   updatedAt: Date;
 };
 
-type TaskInCreation = {
-  title: string;
-  description: string;
-  category: string;
-  location: string;
-  offer: number | null; // Offer can be null initially
-};
-
 type User = {
   id: string;
   username: string;
@@ -32,9 +24,41 @@ type User = {
   rating: number;
   tasksPosted: number;
   tasksCompleted: number;
-  tasker: boolean;
+  isTasker: boolean;
   createdAt: string; // ISO string
   updatedAt: string; // ISO string
+};
+
+type Review = {
+  id: string;
+  reviewer: User;
+  reviewee: User;
+  task: Task;
+  rating: number;
+  comment?: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type SignUpData = {
+  username: string;
+  email: string;
+  phone: string;
+  password: string;
+  confirmPassword: string;
+};
+
+type LoginData = {
+  email: string;
+  password: string;
+};
+
+type TaskInCreation = {
+  title: string;
+  description: string;
+  category: string;
+  location: string;
+  offer: number | null; // Offer can be null initially
 };
 
 type CategoryOption = {
@@ -42,4 +66,4 @@ type CategoryOption = {
   value: string;
 };
 
-export type { Task, User, Status, TaskInCreation, CategoryOption };
+export type { Task, User, Status, TaskInCreation, CategoryOption, Review, SignUpData, LoginData };

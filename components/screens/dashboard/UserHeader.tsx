@@ -1,31 +1,40 @@
 import colors from '@/constants/Colors'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
 import { moderateScale } from 'react-native-size-matters'
-import { StyleSheet, Text, View, Image } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import { Link } from 'expo-router'
+import { Image } from 'expo-image'
+import { useAuthStore } from '@/stores/authStore'
 
 
 type UserHeaderProps = {
-  userName: string;
   style?: object;
 }
 
-const UserHeader = ({ userName, style }: UserHeaderProps) => {
+const UserHeader = ({ style}: UserHeaderProps) => {
+  const user = useAuthStore((state) => state.user)
+
+  const userName = user?.username || 'User'
+  const image = user?.profilePicture
   
 
   return (
     <View style={[styles.user, style]}>
         <View style={styles.imageContainer}>
-          <Link href='/(tabs)/profile'>
+          <Link href='/profile'>
             <Image
-              source={require('@/assets/images/user.jpg')}
+              source={
+                image
+                  ? { uri: image }
+                  : require('@/assets/images/user.jpg')
+              }
               style={styles.image}
             />
           </Link>
         </View>
         <View style={styles.welcomeTextContainer}>
           <Text style={styles.greetings}>Hello,</Text>
-          <Link href='/(tabs)/profile'>
+          <Link href='/profile'>
             <Text style={styles.name}>{userName}</Text>
           </Link>
         </View>
@@ -50,7 +59,7 @@ const styles = StyleSheet.create({
     borderRadius: '50%',
     borderStyle: 'solid',
     borderWidth: 2,
-    borderColor: colors.text.green,
+    borderColor: colors.component.green.bg,
     overflow: 'hidden',
   },
   image: {

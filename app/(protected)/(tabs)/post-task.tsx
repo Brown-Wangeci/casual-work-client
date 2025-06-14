@@ -1,7 +1,6 @@
 import { Alert, Keyboard, Platform, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native'
 import { useState } from 'react'
-import ScreenWrapper from '@/components/layout/screen-wrapper'
-import ContentWrapper from '@/components/layout/content-wrapper'
+import ContentWrapper from '@/components/layout/ContentWrapper'
 import CustomHeader from '@/components/layout/CustomHeader'
 import Button from '@/components/ui/Button'
 import colors from '@/constants/Colors'
@@ -14,7 +13,8 @@ import InfoText from '@/components/common/InfoText'
 import TaskCategorySelect from '@/components/screens/post-task/TaskCategorySelect'
 import Hr from '@/components/common/Hr'
 import { TaskInCreation } from '@/constants/Types'
-import axios from 'axios'
+import ScreenBackground from '@/components/layout/ScreenBackground'
+import api from '@/lib/axios'
 
 const PostTaskScreen = () => {
   const [createdTask, setCreatedTask] = useState< TaskInCreation >(
@@ -55,7 +55,7 @@ const PostTaskScreen = () => {
 
     try {
 
-      const response = await axios.post(`http://192.168.100.244:3001/tasks`, { ...createdTask });
+      const response = await api.post(`/tasks`, { ...createdTask });
       console.log(response.data);
       const { taskId } = response.data ;
       if (taskId) {
@@ -71,7 +71,7 @@ const PostTaskScreen = () => {
   };
 
   return (
-    <ScreenWrapper>
+    <ScreenBackground>
       <CustomHeader title='Create Task' />
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAwareScrollView
@@ -161,7 +161,7 @@ const PostTaskScreen = () => {
           </ContentWrapper>
         </KeyboardAwareScrollView>
       </TouchableWithoutFeedback>
-    </ScreenWrapper>
+    </ScreenBackground>
   )
 }
 

@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text } from 'react-native'
+import { Pressable, StyleSheet, Text, TouchableOpacity } from 'react-native'
 import React from 'react'
 import colors from '@/constants/Colors'
 import { moderateScale } from 'react-native-size-matters'
@@ -13,22 +13,22 @@ type ButtonProps = {
 const Button = ({ title, onPress, type, small }: ButtonProps) => {
     if (small) {
         return (
-            <Pressable
+            <TouchableOpacity
                 onPress={onPress}
                 style={[styles.smallButton, styles[type]]}
             >
                 <Text style={[styles.buttonTitle, styles[`buttonTitle${type}`]]}>{title}</Text>
-            </Pressable>
+            </TouchableOpacity>
         )
     }
 
     return (
-        <Pressable
+        <TouchableOpacity
         onPress={onPress}
         style={[styles.button, styles[type]]}
         >
         <Text style={[styles.buttonTitle, styles[`buttonTitle${type}`]]}>{title}</Text>
-        </Pressable>
+        </TouchableOpacity>
     )
 }
 

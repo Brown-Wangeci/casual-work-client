@@ -1,18 +1,19 @@
-import ScreenWrapper from '@/components/layout/screen-wrapper';
+import ContentWrapper from '@/components/layout/ContentWrapper';
+import ScreenBackground from '@/components/layout/ScreenBackground';
 import { Link, Stack } from 'expo-router';
 import { StyleSheet, View, Text } from 'react-native';
 
 export default function NotFoundScreen() {
   return (
-    <>
+    <ScreenBackground>
       <Stack.Screen options={{ title: 'Oops!' }} />
-      <ScreenWrapper>
+      <ContentWrapper>
         <Text>This screen doesn't exist.</Text>
         <Link href="/" style={styles.link}>
           <Text>Go to home screen!</Text>
         </Link>
-      </ScreenWrapper>
-    </>
+      </ContentWrapper>
+    </ScreenBackground>
   );
 }
 

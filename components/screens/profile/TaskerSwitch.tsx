@@ -2,27 +2,31 @@ import { StyleSheet, View, Text, Switch, Alert } from 'react-native'
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import colors from '@/constants/Colors'
 import { moderateScale } from 'react-native-size-matters'
-import { useState } from 'react'
-import axios from 'axios'
+import api from '@/lib/axios'
+import { useAuthStore } from '@/stores/authStore'
 
-type TaskerSwitchProps = {
-  tasker: boolean;
-  userId: string;
-};
 
-const TaskerSwitch = ( { tasker, userId }: TaskerSwitchProps ) => {
+const TaskerSwitch = ( ) => {
 
-    const [isEnabled, setIsEnabled] = useState(tasker);
+    const user = useAuthStore((state) => state.user);
+    const updateUser = useAuthStore((state) => state.updateUser);
+
+    if (!user) return null;
+
+    const isEnabled = user.isTasker ?? false;
 
     // Function to handle the switch toggle
     const handleToggle = async () => {
+        const newStatus = !isEnabled;
+
         try {
-            const response = await axios.patch(`http://192.168.100.244:3001/users/${userId}`,{ tasker: !isEnabled });
+            const response = await api.patch(`/users/${user.id}`,{ isTasker: newStatus });
             if (response.status === 200) {
-                setIsEnabled(!isEnabled);
-                Alert.alert('Success', `Tasker status updated to ${!isEnabled ? 'available' : 'not available'}.`);
+                updateUser({ isTasker: newStatus });
+                Alert.alert('Success', `Tasker status updated to ${newStatus ? 'available' : 'not available'}.`);
             } else {
                 console.error('Failed to update tasker status');
+                Alert.alert('Error', 'Failed to update tasker status. Please try again later.');
             }
         } catch (error) {
             console.error('Error updating tasker status:', error);

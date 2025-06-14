@@ -1,7 +1,6 @@
 import { Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View } from 'react-native'
 import React, { useState } from 'react'
-import ScreenWrapper from '@/components/layout/screen-wrapper'
-import ContentWrapper from '@/components/layout/content-wrapper'
+import ContentWrapper from '@/components/layout/ContentWrapper'
 import CustomHeader from '@/components/layout/CustomHeader'
 import Button from '@/components/ui/Button'
 import StarRating from '@/components/common/StarRating'
@@ -11,6 +10,7 @@ import colors from '@/constants/Colors'
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import { moderateScale } from 'react-native-size-matters'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+import ScreenBackground from '@/components/layout/ScreenBackground'
 
 const TaskConfirmationScreen = () => {
   const [task] = useState({
@@ -29,7 +29,7 @@ const TaskConfirmationScreen = () => {
   });
 
   return (
-    <ScreenWrapper>
+    <ScreenBackground>
       <CustomHeader title='Task Confirmation' showBackButton />
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAwareScrollView
@@ -96,7 +96,7 @@ const TaskConfirmationScreen = () => {
           </ContentWrapper>
         </KeyboardAwareScrollView>
       </TouchableWithoutFeedback>
-    </ScreenWrapper>
+    </ScreenBackground>
   )
 }
 

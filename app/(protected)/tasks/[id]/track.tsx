@@ -1,6 +1,5 @@
 import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import ScreenWrapper from '@/components/layout/screen-wrapper'
 import { Image } from 'expo-image'
 import colors from '@/constants/Colors'
 import { moderateScale } from 'react-native-size-matters'
@@ -9,14 +8,15 @@ import LiveMapView from '@/components/screens/task-track/LiveMapView'
 import ProgressBar from '@/components/ui/ProgressBar'
 import StarRating from '@/components/common/StarRating'
 import Button from '@/components/ui/Button'
-import ContentWrapper from '@/components/layout/content-wrapper'
+import ContentWrapper from '@/components/layout/ContentWrapper'
 import Tag from '@/components/screens/task-track/Tag'
 import { FontAwesome6 } from '@expo/vector-icons'
 import CustomHeader from '@/components/layout/CustomHeader'
 import { calculateProgress, formatStatus } from '@/lib/utils'
 import { Task, User } from '@/constants/Types'
-import { useLocalSearchParams } from 'expo-router'
-import axios from 'axios'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import ScreenBackground from '@/components/layout/ScreenBackground'
+import api from '@/lib/axios'
 
 
 const TaskTrackingScreen = () => {
@@ -27,6 +27,10 @@ const TaskTrackingScreen = () => {
   const [ task, setTask ] = useState< Task | null >(null);
   const [ address, setAddress ] = useState('');
   const [mapHeight, setMapHeight] = useState(hp('30%'));
+
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+
+  const router = useRouter();
 
 
   const toggleMapHeight = () => {
@@ -41,9 +45,9 @@ const TaskTrackingScreen = () => {
     setError(null);
     setProgress(null);
     try {
-      const response = await axios.get(`http://192.168.100.244:3001/tasks?id=${taskId}`);
+      const response = await api.get(`/tasks?id=${taskId}`);
       const taskData = response.data[0];
-      const res = await axios.get(`http://192.168.100.244:3001/users?id=${taskData.taskerAssigned}`);
+      const res = await api.get(`/users?id=${taskData.taskerAssigned}`);
       const taskerData: User = res.data[0];
       const taskWithTasker: Task = {
         ...taskData,
@@ -68,6 +72,10 @@ const TaskTrackingScreen = () => {
     setRefreshing(false);
   };
 
+  const onContactTasker = () => {
+    router.push(`/user/${task?.taskerAssigned?.id}`);
+  }
+
 
   useEffect(() => {
     fetchTaskDetails();
@@ -75,7 +83,7 @@ const TaskTrackingScreen = () => {
 
 
   return (
-    <ScreenWrapper>
+    <ScreenBackground>
       <CustomHeader title='Task Tracking' showBackButton />
       <ScrollView
         contentContainerStyle={ styles.scrollContainer }
@@ -136,7 +144,7 @@ const TaskTrackingScreen = () => {
                         <StarRating rating={task.taskerAssigned?.rating!} size={16} />
                       </View>
                       <View style={styles.buttonContainer}>
-                        <Button title="Contact" type='primary' small onPress={()=>{}} />
+                        <Button title="Contact" type='secondary' small onPress={onContactTasker} />
                       </View>
                     </View>
                 ): (
@@ -154,7 +162,7 @@ const TaskTrackingScreen = () => {
           }
         </ContentWrapper>
       </ScrollView>
-    </ScreenWrapper>
+    </ScreenBackground>
   )
 }
 

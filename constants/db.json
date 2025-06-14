@@ -5,11 +5,11 @@
       "username": "sarah_martinez",
       "email": "sarah.martinez@strathmore.edu",
       "phone": "+254712345678",
-      "profilePicture": "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=400&h=400&fit=crop&crop=faces",
+      "profilePicture": "https://api.dicebear.com/7.x/adventurer/svg?seed=sarah_martinez",
       "rating": 4.8,
       "tasksPosted": 12,
       "tasksCompleted": 8,
-      "tasker": true,
+      "isTasker": true,
       "createdAt": "2025-03-15T09:30:00.000Z",
       "updatedAt": "2025-06-03T14:22:00.000Z"
     },
@@ -18,24 +18,24 @@
       "username": "mike_johnson",
       "email": "mike.johnson@strathmore.edu",
       "phone": "+254723456789",
-      "profilePicture": "https://images.unsplash.com/photo-1590080877038-5c4c5edc1df9?w=400&h=400&fit=crop&crop=faces",
+      "profilePicture": "https://api.dicebear.com/7.x/adventurer/svg?seed=mike_johnson",
       "rating": 4.2,
       "tasksPosted": 5,
       "tasksCompleted": 15,
-      "tasker": true,
+      "isTasker": true,
       "createdAt": "2025-02-20T11:45:00.000Z",
       "updatedAt": "2025-06-03T16:10:00.000Z"
     },
     {
       "id": "3",
-      "username": "emma_chen",
-      "email": "emma.chen@strathmore.edu",
-      "phone": "+254734567890",
-      "profilePicture": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=faces",
+      "username": "don_black",
+      "email": "don.black@strathmore.edu",
+      "phone": "+254758154542",
+      "profilePicture": "https://api.dicebear.com/7.x/adventurer/svg?seed=don_black",
       "rating": 4.9,
       "tasksPosted": 8,
       "tasksCompleted": 22,
-      "tasker": true,
+      "isTasker": false,
       "createdAt": "2025-01-10T08:15:00.000Z",
       "updatedAt": "2025-06-03T13:45:00.000Z"
     },
@@ -44,11 +44,11 @@
       "username": "david_wilson",
       "email": "david.wilson@strathmore.edu",
       "phone": "+254745678901",
-      "profilePicture": "https://images.unsplash.com/photo-1614288039396-f2f207865f3b?w=400&h=400&fit=crop&crop=faces",
+      "profilePicture": "https://api.dicebear.com/7.x/adventurer/svg?seed=david_wilson",
       "rating": 3.7,
       "tasksPosted": 15,
       "tasksCompleted": 3,
-      "tasker": false,
+      "isTasker": false,
       "createdAt": "2025-04-05T12:30:00.000Z",
       "updatedAt": "2025-06-03T15:20:00.000Z"
     },
@@ -57,11 +57,11 @@
       "username": "lisa_brown",
       "email": "lisa.brown@strathmore.edu",
       "phone": "+254756789012",
-      "profilePicture": "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&h=400&fit=crop&crop=faces",
+      "profilePicture": "https://api.dicebear.com/7.x/adventurer/svg?seed=lisa_brown",
       "rating": 4.6,
       "tasksPosted": 6,
       "tasksCompleted": 11,
-      "tasker": true,
+      "isTasker": true,
       "createdAt": "2025-03-01T10:20:00.000Z",
       "updatedAt": "2025-06-03T12:35:00.000Z"
     },
@@ -70,11 +70,11 @@
       "username": "alex_rodriguez",
       "email": "alex.rodriguez@strathmore.edu",
       "phone": "+254767890123",
-      "profilePicture": "https://images.unsplash.com/photo-1603415526960-f7e0328b1525?w=400&h=400&fit=crop&crop=faces",
+      "profilePicture": "https://api.dicebear.com/7.x/adventurer/svg?seed=alex_rodriguez",
       "rating": 4.3,
       "tasksPosted": 9,
       "tasksCompleted": 7,
-      "tasker": true,
+      "isTasker": true,
       "createdAt": "2025-02-14T14:00:00.000Z",
       "updatedAt": "2025-06-03T17:15:00.000Z"
     },
@@ -83,11 +83,11 @@
       "username": "jessica_taylor",
       "email": "jessica.taylor@strathmore.edu",
       "phone": "+254778901234",
-      "profilePicture": "https://images.unsplash.com/photo-1614288039396-1f199b5d0735?w=400&h=400&fit=crop&crop=faces",
+      "profilePicture": "https://api.dicebear.com/7.x/adventurer/svg?seed=jessica_taylor",
       "rating": 4.1,
       "tasksPosted": 4,
       "tasksCompleted": 9,
-      "tasker": true,
+      "isTasker": true,
       "createdAt": "2025-04-20T16:45:00.000Z",
       "updatedAt": "2025-06-03T11:50:00.000Z"
     },
@@ -96,11 +96,11 @@
       "username": "carlos_garcia",
       "email": "carlos.garcia@strathmore.edu",
       "phone": "+254789012345",
-      "profilePicture": "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=400&h=400&fit=crop&crop=faces",
+      "profilePicture": "https://api.dicebear.com/7.x/adventurer/svg?seed=carlos_garcia",
       "rating": 3.9,
       "tasksPosted": 11,
       "tasksCompleted": 5,
-      "tasker": false,
+      "isTasker": false,
       "createdAt": "2025-01-25T13:10:00.000Z",
       "updatedAt": "2025-06-03T14:40:00.000Z"
     },
@@ -109,11 +109,11 @@
       "username": "amanda_white",
       "email": "amanda.white@strathmore.edu",
       "phone": "+254790123456",
-      "profilePicture": "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=400&fit=crop&crop=faces",
+      "profilePicture": "https://api.dicebear.com/7.x/adventurer/svg?seed=amanda_white",
       "rating": 4.7,
       "tasksPosted": 7,
       "tasksCompleted": 13,
-      "tasker": true,
+      "isTasker": true,
       "createdAt": "2025-03-30T09:25:00.000Z",
       "updatedAt": "2025-06-03T16:30:00.000Z"
     },
@@ -122,11 +122,11 @@
       "username": "ryan_thompson",
       "email": "ryan.thompson@strathmore.edu",
       "phone": "+254701234567",
-      "profilePicture": "https://images.unsplash.com/photo-1628890927110-1e2c84f04ec5?w=400&h=400&fit=crop&crop=faces",
+      "profilePicture": "https://api.dicebear.com/7.x/adventurer/svg?seed=ryan_thompson",
       "rating": 4.4,
       "tasksPosted": 3,
       "tasksCompleted": 18,
-      "tasker": true,
+      "isTasker": true,
       "createdAt": "2025-02-08T15:55:00.000Z",
       "updatedAt": "2025-06-03T13:20:00.000Z"
     }
@@ -141,11 +141,11 @@
       "offer": 120,
       "status": "pending",
       "taskPoster": 4,
-      "taskersApplied": [
+      "isTaskersApplied": [
         1,
         2
       ],
-      "taskerAssigned": null,
+      "isTaskerAssigned": null,
       "createdAt": "2025-06-03T08:30:00.000Z",
       "updatedAt": "2025-06-03T08:30:00.000Z"
     },
@@ -158,12 +158,12 @@
       "offer": 250,
       "status": "in_progress",
       "taskPoster": 8,
-      "taskersApplied": [
+      "isTaskersApplied": [
         3,
         5,
         9
       ],
-      "taskerAssigned": 3,
+      "isTaskerAssigned": 3,
       "createdAt": "2025-06-03T07:15:00.000Z",
       "updatedAt": "2025-06-03T10:45:00.000Z"
     },
@@ -176,11 +176,11 @@
       "offer": 180,
       "status": "completed",
       "taskPoster": 7,
-      "taskersApplied": [
+      "isTaskersApplied": [
         6,
         10
       ],
-      "taskerAssigned": 10,
+      "isTaskerAssigned": 10,
       "createdAt": "2025-06-03T09:00:00.000Z",
       "updatedAt": "2025-06-03T15:30:00.000Z"
     },
@@ -193,10 +193,10 @@
       "offer": 220,
       "status": "pending",
       "taskPoster": 5,
-      "taskersApplied": [
+      "isTaskersApplied": [
         1
       ],
-      "taskerAssigned": null,
+      "isTaskerAssigned": null,
       "createdAt": "2025-06-03T06:45:00.000Z",
       "updatedAt": "2025-06-03T12:20:00.000Z"
     },
@@ -209,11 +209,11 @@
       "offer": 80,
       "status": "in_progress",
       "taskPoster": 9,
-      "taskersApplied": [
+      "isTaskersApplied": [
         2,
         4
       ],
-      "taskerAssigned": 2,
+      "isTaskerAssigned": 2,
       "createdAt": "2025-06-03T11:30:00.000Z",
       "updatedAt": "2025-06-03T14:15:00.000Z"
     },
@@ -226,12 +226,12 @@
       "offer": 300,
       "status": "pending",
       "taskPoster": 10,
-      "taskersApplied": [
+      "isTaskersApplied": [
         6,
         8,
         7
       ],
-      "taskerAssigned": null,
+      "isTaskerAssigned": null,
       "createdAt": "2025-06-03T13:15:00.000Z",
       "updatedAt": "2025-06-03T13:15:00.000Z"
     },
@@ -244,11 +244,11 @@
       "offer": 320,
       "status": "pending",
       "taskPoster": 1,
-      "taskersApplied": [
+      "isTaskersApplied": [
         3,
         5
       ],
-      "taskerAssigned": null,
+      "isTaskerAssigned": null,
       "createdAt": "2025-06-03T10:00:00.000Z",
       "updatedAt": "2025-06-03T16:45:00.000Z"
     },
@@ -261,11 +261,11 @@
       "offer": 140,
       "status": "completed",
       "taskPoster": 2,
-      "taskersApplied": [
+      "isTaskersApplied": [
         10,
         6
       ],
-      "taskerAssigned": 6,
+      "isTaskerAssigned": 6,
       "createdAt": "2025-06-03T08:45:00.000Z",
       "updatedAt": "2025-06-03T17:20:00.000Z"
     },
@@ -278,10 +278,10 @@
       "offer": 160,
       "status": "cancelled",
       "taskPoster": 3,
-      "taskersApplied": [
+      "isTaskersApplied": [
         2
       ],
-      "taskerAssigned": null,
+      "isTaskerAssigned": null,
       "createdAt": "2025-06-03T07:30:00.000Z",
       "updatedAt": "2025-06-03T11:15:00.000Z"
     },
@@ -294,8 +294,8 @@
       "offer": 100,
       "status": "pending",
       "taskPoster": 6,
-      "taskersApplied": null,
-      "taskerAssigned": null,
+      "isTaskersApplied": null,
+      "isTaskerAssigned": null,
       "createdAt": "2025-06-03T09:20:00.000Z",
       "updatedAt": "2025-06-03T09:20:00.000Z"
     },
@@ -308,11 +308,11 @@
       "offer": 110,
       "status": "in_progress",
       "taskPoster": 7,
-      "taskersApplied": [
+      "isTaskersApplied": [
         5,
         9
       ],
-      "taskerAssigned": 9,
+      "isTaskerAssigned": 9,
       "createdAt": "2025-06-03T12:10:00.000Z",
       "updatedAt": "2025-06-03T15:45:00.000Z"
     },
@@ -325,12 +325,12 @@
       "offer": 450,
       "status": "pending",
       "taskPoster": 8,
-      "taskersApplied": [
+      "isTaskersApplied": [
         1,
         2,
         10
       ],
-      "taskerAssigned": null,
+      "isTaskerAssigned": null,
       "createdAt": "2025-06-03T14:30:00.000Z",
       "updatedAt": "2025-06-03T14:30:00.000Z"
     },
@@ -343,10 +343,10 @@
       "offer": 240,
       "status": "pending",
       "taskPoster": 9,
-      "taskersApplied": [
+      "isTaskersApplied": [
         3
       ],
-      "taskerAssigned": null,
+      "isTaskerAssigned": null,
       "createdAt": "2025-06-03T11:45:00.000Z",
       "updatedAt": "2025-06-03T16:20:00.000Z"
     },
@@ -359,10 +359,10 @@
       "offer": 200,
       "status": "completed",
       "taskPoster": 4,
-      "taskersApplied": [
+      "isTaskersApplied": [
         10
       ],
-      "taskerAssigned": 10,
+      "isTaskerAssigned": 10,
       "createdAt": "2025-06-03T08:00:00.000Z",
       "updatedAt": "2025-06-03T14:50:00.000Z"
     },
@@ -375,11 +375,11 @@
       "offer": 130,
       "status": "completed",
       "taskPoster": 5,
-      "taskersApplied": [
+      "isTaskersApplied": [
         1,
         6
       ],
-      "taskerAssigned": 1,
+      "isTaskerAssigned": 1,
       "createdAt": "2025-06-03T06:30:00.000Z",
       "updatedAt": "2025-06-03T12:45:00.000Z"
     },
@@ -392,11 +392,11 @@
       "offer": 100,
       "status": "in_progress",
       "taskPoster": 10,
-      "taskersApplied": [
+      "isTaskersApplied": [
         3,
         7
       ],
-      "taskerAssigned": 3,
+      "isTaskerAssigned": 3,
       "createdAt": "2025-06-03T09:45:00.000Z",
       "updatedAt": "2025-06-03T13:10:00.000Z"
     },
@@ -409,12 +409,12 @@
       "offer": 180,
       "status": "pending",
       "taskPoster": 3,
-      "taskersApplied": [
+      "isTaskersApplied": [
         5,
         9,
         7
       ],
-      "taskerAssigned": null,
+      "isTaskerAssigned": null,
       "createdAt": "2025-06-03T07:00:00.000Z",
       "updatedAt": "2025-06-03T15:25:00.000Z"
     },
@@ -427,11 +427,11 @@
       "offer": 260,
       "status": "pending",
       "taskPoster": 2,
-      "taskersApplied": [
+      "isTaskersApplied": [
         6,
         10
       ],
-      "taskerAssigned": null,
+      "isTaskerAssigned": null,
       "createdAt": "2025-06-03T13:45:00.000Z",
       "updatedAt": "2025-06-03T13:45:00.000Z"
     },
@@ -444,11 +444,11 @@
       "offer": 200,
       "status": "pending",
       "taskPoster": 6,
-      "taskersApplied": [
+      "isTaskersApplied": [
         1,
         2
       ],
-      "taskerAssigned": null,
+      "isTaskerAssigned": null,
       "createdAt": "2025-06-03T16:15:00.000Z",
       "updatedAt": "2025-06-03T16:15:00.000Z"
     },
@@ -461,10 +461,10 @@
       "offer": 150,
       "status": "cancelled",
       "taskPoster": 7,
-      "taskersApplied": [
+      "isTaskersApplied": [
         4
       ],
-      "taskerAssigned": null,
+      "isTaskerAssigned": null,
       "createdAt": "2025-06-03T14:00:00.000Z",
       "updatedAt": "2025-06-03T17:10:00.000Z"
     },
@@ -477,11 +477,11 @@
       "offer": 90,
       "status": "pending",
       "taskPoster": 8,
-      "taskersApplied": [
+      "isTaskersApplied": [
         2,
         5
       ],
-      "taskerAssigned": null,
+      "isTaskerAssigned": null,
       "createdAt": "2025-06-03T12:00:00.000Z",
       "updatedAt": "2025-06-03T12:00:00.000Z"
     }

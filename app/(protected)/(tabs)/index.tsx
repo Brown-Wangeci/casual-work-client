@@ -1,40 +1,41 @@
 import { StyleSheet, View, Text, ScrollView, Alert } from 'react-native';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
 import { moderateScale } from 'react-native-size-matters'
-import ScreenWrapper from '@/components/layout/screen-wrapper'
 import UserHeader from '@/components/screens/dashboard/UserHeader';
 import SummaryCard from '@/components/common/SummaryCard';
 import colors from '@/constants/Colors';
-import ContentWrapper from '@/components/layout/content-wrapper';
+import ContentWrapper from '@/components/layout/ContentWrapper';
 import TaskerSwitch from '@/components/screens/profile/TaskerSwitch';
 import Button from '@/components/ui/Button';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
+import ScreenBackground from '@/components/layout/ScreenBackground';
+import { useAuthStore } from '@/stores/authStore';
 
 const DashboardScreen = () => {
   const router = useRouter();
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+
+  if (!user) {
+    Alert.alert('Error', 'User not found. Please log in again.');
+    router.push('/login');
+    return null; // Prevent rendering if user is not found
+  }
+
+  const postedTasks = user.tasksPosted ?? 0;
+  const completedTasks = user.tasksCompleted ?? 0;
 
   // Navigation to other pages via pressable components
-  const onNavigateToPostTaskScreen = () => {
-    router.push('/(tabs)/post-task')
-  }
+  const onNavigateToPostTaskScreen = () => router.push('/post-task'); 
+  const onNavigateToTaskFeedScreen = () => router.push('/task-feed');
 
-  const onNavigateToTaskFeedScreen = () => {
-    router.push('/(tabs)/task-feed')
-  }
-
-  const onNavigateToProfileScreen = () => {
-    router.push('/(tabs)/profile')
-  }
-
-  const postedTasks = 7;
-  const completedTasks = 20;
 
   return (
-    <ScreenWrapper>
-      <UserHeader userName={"don_black"} />
+    <ScreenBackground>
+      <UserHeader />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <ContentWrapper style={{ gap: moderateScale(20, 0.2) }}>
-          <TaskerSwitch tasker={true} />
+          <TaskerSwitch />
           <View style={styles.summaryCards}>
               <SummaryCard width={wp('42%')} height={moderateScale(100, 0.2)}>
                 <Text style={styles.numberOfTasks}>{ completedTasks }</Text>
@@ -50,12 +51,12 @@ const DashboardScreen = () => {
             <Button title='VIEW TASK FEED' type='secondary' onPress={onNavigateToTaskFeedScreen} />
           </View>
           <Text style={styles.activityText}>Activity</Text>
-          <View style={styles.recentActivity}>
+          <View style={styles.recentActivityContainer}>
 
           </View>
         </ContentWrapper>
       </ScrollView>
-    </ScreenWrapper>
+    </ScreenBackground>
   )
 }
 
@@ -92,7 +93,7 @@ const styles = StyleSheet.create({
     fontFamily: 'poppins-bold',
     fontSize: moderateScale(18, 0.2),
   },
-  recentActivity: {
+  recentActivityContainer: {
 
   }
 })

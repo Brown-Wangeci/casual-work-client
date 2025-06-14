@@ -11,9 +11,9 @@ const TasksLayout = () => {
             contentStyle: {
                 backgroundColor: colors.bg,
             },
-            animation: 'slide_from_right',
         }}
-    />
+    >
+    </Stack>
   )
 }
 

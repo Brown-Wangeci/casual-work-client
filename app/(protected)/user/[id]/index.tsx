@@ -1,29 +1,36 @@
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native'
 import { Image } from 'expo-image'
-import ScreenWrapper from '@/components/layout/screen-wrapper'
 import CustomHeader from '@/components/layout/CustomHeader'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
 import { moderateScale } from 'react-native-size-matters'
 import colors from '@/constants/Colors'
-import TaskerSwitch from '@/components/screens/profile/TaskerSwitch'
-import ContentWrapper from '@/components/layout/content-wrapper'
+import ContentWrapper from '@/components/layout/ContentWrapper'
 import SummaryCard from '@/components/common/SummaryCard'
 import StarRating from '@/components/common/StarRating'
-import ThemedInput from '@/components/ui/ThemedInput'
 import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { User } from '@/constants/Types'
-import { Ionicons } from '@expo/vector-icons'
-import Button from '@/components/ui/Button'
-import InfoText from '@/components/common/InfoText'
+import { FontAwesome, Ionicons } from '@expo/vector-icons'
+import Vr from '@/components/common/Vr'
+import ScreenBackground from '@/components/layout/ScreenBackground'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import api from '@/lib/axios'
 
-const ProfileScreen = () => {
+const UserProfileScreen = () => {
   const [ userData, setUserData ] = useState<User | null>(null)
+
+  // Get user id from navigation params
+  const { id } = useLocalSearchParams();
+  console.log('User ID from params:', useLocalSearchParams());
+  // If userId is not provided, default to 3 for testing purposes
+  const router = useRouter();
+
+  const userId = id || 3;
 
   // Fetch user data from API.........with change to state management
   const fetchUserData = async () => {
     try {
-      const response = await axios.get('http://192.168.100.244:3001/users?id=3')
+      const response = await api.get(`/users/?id=${userId}`)
       setUserData(response.data[0])
       } catch (error) {
         console.error(error)
@@ -41,50 +48,43 @@ const ProfileScreen = () => {
   const rating = userData?.rating || 0;
 
   return (
-    <ScreenWrapper>
-      <CustomHeader title='Profile' />
+    <ScreenBackground>
+      <CustomHeader title='Tasker Profile' showBackButton />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <ContentWrapper style={{ gap: moderateScale(20, 0.2) }}>
-          <View style={styles.imageContainer}>
-            <Image
-              source={
-                userData?.profilePicture
-                  ? { uri: userData.profilePicture }
-                  : require('@/assets/images/user.jpg')
-              }
-              style={styles.image}
-            />
+          <TouchableWithoutFeedback onPress={()=>{ router.push(`/user/${userId}/avatar`) }}>
+            <View style={styles.imageContainer}>
+              <Image
+                source={
+                  userData?.profilePicture
+                    ? { uri: userData.profilePicture }
+                    : require('@/assets/images/user.jpg')
+                }
+                style={styles.image}
+              />
           </View>
+          </TouchableWithoutFeedback>
           <View style={styles.infoContainer}>
-            <ThemedInput
-              placeholder='Enter your name'
-              value={userData?.username}
-              onChangeText={() => {}}
-            />
-            <ThemedInput
-              placeholder='Enter your email'
-              value={userData?.email}
-              onChangeText={() => {}}
-            />
-            <ThemedInput
-              placeholder='Enter your name'
-              value={userData?.phone}
-              onChangeText={() => {}}
-            />
+            <Text style={styles.subText}>{userData?.username}</Text>
+            <Text style={styles.subText}>{userData?.phone}</Text>
           </View>
-          <InfoText>
-            To update your profile, edit the fields above and tap "Update Profile".
-          </InfoText>
-
-          <View style={styles.editContainer}>
-            <Button
-              title='Update Profile'
-              type='primary'
-              small
-              onPress={() => {Alert.alert('Update Profile', 'Profile updated successfully!')}}
-            />
+          <View style={styles.contactSection}>
+            <TouchableOpacity onPress={() => Linking.openURL(`tel:${userData?.phone}`)}>
+                <Ionicons name="call-outline" size={20} color={colors.text.bright} />
+            </TouchableOpacity>
+            <Vr/>
+            <TouchableOpacity onPress={() => Linking.openURL(`sms:${userData?.phone}`)}>
+                <Ionicons name="chatbubble-ellipses-outline" size={20} color={colors.text.bright} />
+            </TouchableOpacity>
+            <Vr/>
+            <TouchableOpacity
+                onPress={() =>
+                    Linking.openURL(`https://wa.me/${userData?.phone?.replace(/[^0-9]/g, '')}`)
+                }
+            >
+                <FontAwesome name="whatsapp" size={20} color={colors.text.bright} />
+            </TouchableOpacity>
           </View>
-          <TaskerSwitch tasker={userData?.tasker!} userId={userData?.id!}/>
           <View>
             <Text style={styles.title}>Performance</Text>
             <View style={styles.subSection}>
@@ -123,11 +123,11 @@ const ProfileScreen = () => {
           </View>
         </ContentWrapper>
       </ScrollView>
-    </ScreenWrapper>
+    </ScreenBackground>
   )
 }
 
-export default ProfileScreen
+export default UserProfileScreen
 
 const styles = StyleSheet.create({
   title: {
@@ -165,8 +165,8 @@ const styles = StyleSheet.create({
       borderRadius: '50%',
       borderStyle: 'solid',
       borderWidth: 2,
-      borderColor: colors.text.green,
-      // borderColor: colors.component.stroke,
+      borderColor: colors.component.green.bg,
+      // borderColor: colors.text.green,
       overflow: 'hidden',
       alignSelf: 'center',
   },
@@ -177,10 +177,12 @@ const styles = StyleSheet.create({
   infoContainer: {
     width: '100%',
     gap: moderateScale(12, 0.2),
-    alignSelf: 'center',
+    alignItems: 'center',
   },
-  editContainer: {
-    width: wp('40%'),
-    alignSelf: 'flex-end',
-  },
+  contactSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginVertical: moderateScale(10, 0.2),
+  }
 })
