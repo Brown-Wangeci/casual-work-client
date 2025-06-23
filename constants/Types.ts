@@ -46,6 +46,7 @@ type SignUpData = {
   phone: string;
   password: string;
   confirmPassword: string;
+  profilePicture: string;
 };
 
 type LoginData = {

@@ -1,4 +1,4 @@
-import { Alert, Keyboard, Platform, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native'
+import { Alert, Keyboard, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native'
 import { Image } from 'expo-image'
 import CustomHeader from '@/components/layout/CustomHeader'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
@@ -21,37 +21,93 @@ import { useRouter } from 'expo-router'
 
 const ProfileScreen = () => {
   const user = useAuthStore((state) => state.user)
+  const logout = useAuthStore((state) => state.logout)
   const [userInProfile, setUserInProfile] = useState({...user})
   const userUpdate = useAuthStore((state) => state.updateUser)
+
+  useEffect(() => {
+    setUserInProfile({ ...user });
+  }, [user]);
 
   const router  = useRouter()
 
     if (!userInProfile) {
       Alert.alert('Error', 'User not found. Please log in again.');
-      router.push('/login');
+      router.replace('/login');
       return null; // Prevent rendering if user is not found
     }
 
+  // Review this logic to fix the missmatch between user and userInProfile
+  const updateUser = async () => {
+    if (!userInProfile.username || !userInProfile.email || !userInProfile.phone) {
+      Alert.alert('Missing Information', 'Please fill in all required fields.');
+      return;
+    }
 
-// Write this in a better way
-  const  updateUser = async () => {
+    // Save current user as backup in case we need to rollback
+    const previousUser = { ...user };
+
+    // Optimistically update the UI
+    userUpdate(userInProfile);
+
     try {
-      const response = await api.put('/users/me', userInProfile)
-      userUpdate(response.data)
-      } catch (error) {
-        console.error(error)
-        Alert.alert('Error', 'An error occurred while updating your profile. Please try again later.')
+      const response = await api.put('/users/me', userInProfile);
+
+      if (response.status === 200) {
+        userUpdate(response.data); // Confirm with fresh data from backend
+        Alert.alert('Success', 'Your profile has been updated successfully.');
+      } else {
+        console.warn('Unexpected response:', response);
+        userUpdate(previousUser); // Roll back
+        Alert.alert('Update Failed', 'Something went wrong. Please try again.');
       }
-  }
-  
+    } catch (error: any) {
+      console.error('Update error:', error);
 
+      // Roll back to previous state
+      userUpdate(previousUser);
 
+      let message = 'An unexpected error occurred. Please try again.';
+
+      if (error.response) {
+        const { status, data } = error.response;
+
+        switch (status) {
+          case 400:
+            message = data?.message || 'Invalid data provided.';
+            break;
+          case 401:
+            message = 'You are not authorized. Please log in again.';
+            router.push('/login');
+            return;
+          case 500:
+            message = 'Server error. Please try again later.';
+            break;
+          default:
+            message = data?.message || message;
+        }
+      }
+
+      Alert.alert('Error', message);
+    }
+  };
   // Function to handle user profile update with confirmation
   const handleUpdateProfile = async () => {
     confirmAction(
       'Are you sure you want to update your profile?',
       updateUser,
       () => Alert.alert('Update Cancelled', 'Your profile was not updated.')
+    )
+  }
+
+  const handleLogout = async () => {
+    confirmAction(
+      'Are you sure you want to log out?',
+      async () => {
+        await logout();
+        router.replace('/login');
+      },
+      () => Alert.alert('Logout Cancelled', 'You are still logged in.')
     )
   }
 
@@ -71,16 +127,18 @@ const ProfileScreen = () => {
           keyboardShouldPersistTaps="handled"
         >
           <ContentWrapper style={{ gap: moderateScale(20, 0.2) }}>
-            <View style={styles.imageContainer}>
-              <Image
-                source={
-                  userInProfile.profilePicture
-                    ? { uri: userInProfile.profilePicture }
-                    : require('@/assets/images/user.jpg')
-                }
-                style={styles.image}
-              />
-            </View>
+            <TouchableWithoutFeedback onPress={()=>{ router.push(`/user/avatar`) }}>
+              <View style={styles.imageContainer}>
+                <Image
+                  source={
+                    userInProfile.profilePicture
+                      ? { uri: userInProfile.profilePicture }
+                      : require('@/assets/images/user.jpg')
+                  }
+                  style={styles.image}
+                />
+              </View>
+            </TouchableWithoutFeedback>
             <View style={styles.infoContainer}>
               <ThemedInput
                 placeholder='Enter preferred username'
@@ -99,7 +157,7 @@ const ProfileScreen = () => {
               />
             </View>
             <InfoText>
-              To update your profile, edit the fields above and tap "Update Profile".
+              To update your profile, edit the fields above then tap "Update Profile".
             </InfoText>
 
             <View style={styles.editContainer}>
@@ -147,6 +205,13 @@ const ProfileScreen = () => {
                 </SummaryCard>
               </View>
             </View>
+            <View>
+              <TouchableOpacity onPress={ handleLogout }>
+                <InfoText>
+                  Logout
+                </InfoText>
+              </TouchableOpacity>
+            </View>
           </ContentWrapper>
         </KeyboardAwareScrollView>
       </TouchableWithoutFeedback>
@@ -166,7 +231,8 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     alignItems: 'center',
-    paddingVertical: hp('3%'),
+    paddingVertical: hp('2%'),
+    paddingBottom: hp('4%'),
   },
   subSection: {
     width: '100%',

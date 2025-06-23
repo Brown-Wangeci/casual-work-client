@@ -1,11 +1,16 @@
 {
   "expo": {
-    "name": "casual-work-client",
-    "slug": "casual-work-client",
+    "name": "taskmarketplace",
+    "slug": "taskmarketplace",
+    "scheme": "taskmarketplace",
+    "platforms": [
+      "android",
+      "ios"
+    ],
+    "owner": "brown_wangeci",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "backgroundColor": "#171717",
@@ -16,7 +21,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#171717"
-      }
+      },
+      "package": "com.brown_wangeci.taskmarketplace"
     },
     "web": {
       "bundler": "metro",
@@ -38,6 +44,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "eb3293d4-5dbd-46f1-97b1-ffa47ba78d94"
+      }
     }
   }
 }

@@ -9,6 +9,7 @@ import colors from '@/constants/Colors'
 import TaskFeedCard from '@/components/screens/task-feed/TaskFeedCard'
 import ScreenBackground from '@/components/layout/ScreenBackground'
 import api from '@/lib/axios'
+// import axios from 'axios'
 
 const TaskFeedScreen = () => {
 
@@ -21,11 +22,12 @@ const TaskFeedScreen = () => {
   const fetchTasks = async () => {
     setIsLoading(true)
     try {
-      const response = await api.get(`/tasks?status=pending`)
+      // const response = await axios.get(`http://192.168.2.151:3001//tasks?status=pending`) // after testing, replace with api.get('/tasks?status=pending')
+      const response = await api.get('/tasks') // Uncomment this line to use the API client
       setTasks(response.data)
       setError(null)
       } catch (error) {
-        setError('Failed to fetch tasks')
+        setError(JSON.stringify(error))
       } finally {
         setIsLoading(false)
       }

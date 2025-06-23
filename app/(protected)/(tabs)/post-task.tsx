@@ -121,7 +121,7 @@ const PostTaskScreen = () => {
                 </Text>
               </View>
               <View style={styles.inputBlock}>
-                <Text style={styles.inputLabel}>Category <InfoText>(Optional)</InfoText></Text>
+                <Text style={styles.inputLabel}>Category</Text>
                 <TaskCategorySelect
                   onValueChange={(value) => setCreatedTask((prev) => ({ ...prev, category: value }))}
                   categoryValue={createdTask.category}
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     alignItems: 'center',
-    paddingTop: hp('1%'),
+    paddingTop: hp('3%'),
     paddingBottom: hp('4%'),
   },
   title: {

@@ -1,38 +1,38 @@
-import { Pressable, StyleSheet, Text, TouchableOpacity } from 'react-native'
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native'
 import React from 'react'
 import colors from '@/constants/Colors'
 import { moderateScale } from 'react-native-size-matters'
 
 type ButtonProps = {
-    title: string
-    onPress: () => void
-    type: 'primary' | 'secondary' | 'cancel'
-    small?: boolean
+  title: string
+  onPress: () => void
+  type: 'primary' | 'secondary' | 'cancel'
+  small?: boolean
+  loading?: boolean
 }
 
-const Button = ({ title, onPress, type, small }: ButtonProps) => {
-    if (small) {
-        return (
-            <TouchableOpacity
-                onPress={onPress}
-                style={[styles.smallButton, styles[type]]}
-            >
-                <Text style={[styles.buttonTitle, styles[`buttonTitle${type}`]]}>{title}</Text>
-            </TouchableOpacity>
-        )
-    }
+const Button = ({ title, onPress, type, small, loading = false }: ButtonProps) => {
+  const buttonStyle = small ? styles.smallButton : styles.button;
 
-    return (
-        <TouchableOpacity
-        onPress={onPress}
-        style={[styles.button, styles[type]]}
-        >
-        <Text style={[styles.buttonTitle, styles[`buttonTitle${type}`]]}>{title}</Text>
-        </TouchableOpacity>
-    )
-}
+  return (
+    <TouchableOpacity
+      onPress={!loading ? onPress : undefined}
+      style={[buttonStyle, styles[type], loading && { opacity: 0.7 }]}
+      disabled={loading}
+    >
+      {loading ? (
+        <ActivityIndicator size="small" color={colors.button[type].text} />
+      ) : (
+        <Text style={[styles.buttonTitle, styles[`buttonTitle${type}`]]}>
+          {title}
+        </Text>
+      )}
+    </TouchableOpacity>
+  );
+};
 
-export default Button
+export default Button;
+
 
 const styles = StyleSheet.create({
     smallButton: {
