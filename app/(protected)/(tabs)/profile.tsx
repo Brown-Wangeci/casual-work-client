@@ -18,6 +18,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import api from '@/lib/axios'
 import { useAuthStore } from '@/stores/authStore'
 import { useRouter } from 'expo-router'
+import { Ionicons } from '@expo/vector-icons'
 
 const ProfileScreen = () => {
   const user = useAuthStore((state) => state.user)
@@ -105,7 +106,6 @@ const ProfileScreen = () => {
       'Are you sure you want to log out?',
       async () => {
         await logout();
-        router.replace('/login');
       },
       () => Alert.alert('Logout Cancelled', 'You are still logged in.')
     )
@@ -206,8 +206,9 @@ const ProfileScreen = () => {
               </View>
             </View>
             <View>
-              <TouchableOpacity onPress={ handleLogout }>
-                <InfoText>
+              <TouchableOpacity style={styles.logoutContainer} onPress={ handleLogout }>
+                <Ionicons name="log-out-outline" size={24} color={colors.text.light} />
+                <InfoText style={{ width: '100%' }}>
                   Logout
                 </InfoText>
               </TouchableOpacity>
@@ -277,4 +278,11 @@ const styles = StyleSheet.create({
     width: wp('40%'),
     alignSelf: 'flex-end',
   },
+  logoutContainer: {
+    flexDirection:'row',
+    width: wp('30%'),
+    alignItems: 'center',
+    padding: moderateScale(10, 0.2),
+    gap: moderateScale(10, 0.2),
+  }
 })

@@ -11,6 +11,7 @@ const TasksLayout = () => {
             contentStyle: {
                 backgroundColor: colors.bg,
             },
+            animation: 'fade_from_bottom',
         }}
     />
   )

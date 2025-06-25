@@ -3,8 +3,9 @@ import { persist } from 'zustand/middleware';
 import { zustandStorage } from './zustandStorage';
 import * as SecureStore from 'expo-secure-store';
 import { User } from '@/constants/Types';
-import { validateToken } from '@/lib/utils';
+import { extractErrorMessage, logError, validateToken } from '@/lib/utils';
 import { useRouter } from 'expo-router';
+import axios from 'axios';
 
 const router = useRouter();
 
@@ -42,17 +43,32 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: async () => {
-        try {
-          await SecureStore.deleteItemAsync('auth-token');
-          set({ user: null, isAuthenticated: false, token: null });
-          router.replace('/login'); // Redirect to login after logout
-        } catch (error) {
-          console.error('Error clearing auth token:', error);
-          // Optionally: show toast or fallback behavior
-          set({ user: null, isAuthenticated: false, token: null });
-          router.replace('/login'); // Redirect to login after logout
+        const token = get().token;
+
+        // Optimistically update UI immediately
+        await SecureStore.deleteItemAsync('auth-token');
+        set({ user: null, isAuthenticated: false, token: null, });
+
+        // Send logout API in background
+        if (token) {
+          try {
+            await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/auth/logout`, {}, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+            console.info('Logout API call successful.');
+          } catch (error: any) {
+            logError(error, 'logout');
+            const message = extractErrorMessage(error);
+            console.warn('Logout error (after optimistic UI):', message);
+          }
+        } else {
+          console.info('No token found; skipping logout API call.');
         }
       },
+
+
 
       loadToken: async () => {
         try {

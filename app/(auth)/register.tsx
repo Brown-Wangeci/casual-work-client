@@ -16,6 +16,7 @@ import InfoText from '@/components/common/InfoText';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import * as  Google from 'expo-auth-session/providers/google';
+import { extractErrorMessage, logError } from '@/lib/utils';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -48,7 +49,13 @@ const SignUp = () => {
   );
 
   const handleSignUp = async () => {
-    if (!signUpData.username || !signUpData.email || !signUpData.phone || !signUpData.password || !signUpData.confirmPassword) {
+    if (
+      !signUpData.username ||
+      !signUpData.email ||
+      !signUpData.phone ||
+      !signUpData.password ||
+      !signUpData.confirmPassword
+    ) {
       Alert.alert('Missing fields', 'Please fill out all fields.');
       return;
     }
@@ -65,6 +72,7 @@ const SignUp = () => {
 
     try {
       setLoading(true);
+
       const response = await api.post('/auth/signup', {
         username: signUpData.username,
         email: signUpData.email,
@@ -72,30 +80,32 @@ const SignUp = () => {
         password: signUpData.password,
         profilePicture: `https://api.dicebear.com/7.x/lorelei/svg?seed=${signUpData.username}`,
       });
-      setLoading(false);
 
-      if (response.status !== 201) {
-        Alert.alert('Error', 'An error occurred while creating your account. Please try again later.');
-        return;
+      if (response.status === 201 && response.data?.user && response.data?.token) {
+        const { user, token, message } = response.data;
+        useAuthStore.getState().login(user, token);
+        Alert.alert('Success', message || 'Account created successfully!');
+      } else {
+        logError(response, 'Unexpected signup response');
+        Alert.alert('Signup Error', 'Unexpected error. Please try again.');
       }
 
-      const { user, token } = response.data;
-      useAuthStore.getState().login(user, token);
-      Alert.alert('Success', 'Account created successfully!');
-
     } catch (error) {
+      logError(error, 'handleSignUp');
+      const message = extractErrorMessage(error);
+      Alert.alert('Signup Failed', message);
+    } finally {
       setLoading(false);
-      console.error(error);
-      Alert.alert('Error', 'An error occurred while creating your account. Please try again later.');
     }
   };
+
 
   const onSignUpWithGoogle = async () => {
     try {
       setLoading(true);
       const result = await promptAsync();
+
       if (result.type !== 'success' || !result.authentication?.accessToken) {
-        setLoading(false);
         Alert.alert('Google Sign Up', 'Authentication failed or was cancelled.');
         return;
       }
@@ -107,7 +117,6 @@ const SignUp = () => {
       const userInfo = await userInfoResponse.json();
 
       if (!userInfo.email.endsWith('@strathmore.edu')) {
-        setLoading(false);
         Alert.alert('Invalid Email', 'Only Strathmore email accounts are allowed for sign up.');
         return;
       }
@@ -118,22 +127,24 @@ const SignUp = () => {
         profilePicture: userInfo.picture,
       });
 
-      if (response.status !== 200) {
-        setLoading(false);
-        throw new Error('Failed to sign up with Google');
+      if (response.status === 201 && response.data?.user && response.data?.token) {
+        const { user, token, message } = response.data;
+        useAuthStore.getState().login(user, token);
+        // Alert.alert('Welcome', message || `Signed up as ${user.username}`);
+      } else {
+        logError(response, 'Unexpected Google signup response');
+        Alert.alert('Signup Error', 'Unexpected error. Please try again.');
       }
 
-      const { user, token } = response.data;
-      useAuthStore.getState().login(user, token);
-      Alert.alert('Welcome', `Signed up successfully as ${user.username}`);
-      setLoading(false);
-
     } catch (error) {
+      logError(error, 'onSignUpWithGoogle');
+      const message = extractErrorMessage(error);
+      Alert.alert('Google Sign Up Failed', message);
+    } finally {
       setLoading(false);
-      console.error('Google Sign Up Error:', error);
-      Alert.alert('Error', 'Something went wrong with Google Sign Up.');
     }
   };
+
 
   return (
     <ScreenBackground>
@@ -158,7 +169,7 @@ const SignUp = () => {
 
             <InfoText style={{ marginBottom: hp('4%'), width: '100%' }}>Already have an account? <Text style={{ color: colors.text.light }} onPress={() => { router.push('/login'); }}>Login</Text></InfoText>
 
-            <Button title="CREATE ACCOUNT" type='primary' onPress={handleSignUp} loading={loading} />
+            <Button title="CREATE ACCOUNT" type='primary' onPress={handleSignUp} loading />
             <Text style={styles.optionText}>Or Sign Up with</Text>
             <TouchableOpacity style={styles.googleIconContainer} onPress={onSignUpWithGoogle} disabled={loading}>
               <FontAwesome6 name="google" size={36} color={colors.text.bright} />

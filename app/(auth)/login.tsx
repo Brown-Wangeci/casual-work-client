@@ -16,6 +16,7 @@ import InfoText from '@/components/common/InfoText';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import * as  Google from 'expo-auth-session/providers/google';
+import { extractErrorMessage, logError } from '@/lib/utils';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -49,20 +50,27 @@ const Login = () => {
     }
 
     setLoading(true);
+
     try {
       const response = await api.post('/auth/login', loginData);
 
-      if (response.status !== 201) {
-        Alert.alert('Error', 'Invalid credentials. Please try again.');
-        return;
+      if (
+        response.status === 200 &&
+        response.data &&
+        response.data.user &&
+        response.data.token
+      ) {
+        const { user, token, message } = response.data;
+        useAuthStore.getState().login(user, token);
+        // Alert.alert('Success', message || 'Logged in successfully!');
+      } else {
+        logError(response, 'Unexpected response structure in onLogin');
+        Alert.alert('Error', 'Unexpected error. Please try again.');
       }
-
-      const { user, token } = response.data;
-      useAuthStore.getState().login(user, token);
-      Alert.alert('Success', 'Logged in successfully!');
     } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'An error occurred while logging in.');
+      logError(error, 'onLogin');
+      const message = extractErrorMessage(error);
+      Alert.alert('Error', message);
     } finally {
       setLoading(false);
     }
@@ -95,16 +103,28 @@ const Login = () => {
         profilePicture: userInfo.picture,
       });
 
-      const { user, token } = response.data;
-      useAuthStore.getState().login(user, token);
-      Alert.alert('Welcome Back', `Logged in as ${user.username}`);
+      if (
+        response.status === 200 &&
+        response.data &&
+        response.data.user &&
+        response.data.token
+      ) {
+        const { user, token, message } = response.data;
+        useAuthStore.getState().login(user, token);
+        Alert.alert('Success', message || `Logged in as ${user.username}`);
+      } else {
+        logError(response, 'Unexpected response structure in onLoginWithGoogle');
+        Alert.alert('Login Error', 'Unexpected error.');
+      }
     } catch (error) {
-      console.error('Google Login Error:', error);
-      Alert.alert('Login Failed', 'Something went wrong with Google login.');
+      logError(error, 'onLoginWithGoogle');
+      const message = extractErrorMessage(error);
+      Alert.alert('Login Failed', message);
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <ScreenBackground>

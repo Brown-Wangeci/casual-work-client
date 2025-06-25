@@ -5,11 +5,12 @@ import ContentWrapper from '@/components/layout/ContentWrapper'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
 import { moderateScale } from 'react-native-size-matters'
 import { Task } from '@/constants/Types'
-import colors from '@/constants/Colors'
 import TaskFeedCard from '@/components/screens/task-feed/TaskFeedCard'
 import ScreenBackground from '@/components/layout/ScreenBackground'
 import api from '@/lib/axios'
-// import axios from 'axios'
+import { extractErrorMessage, logError } from '@/lib/utils'
+import Loading from '@/components/common/Loading'
+import { View } from 'react-native'
 
 const TaskFeedScreen = () => {
 
@@ -22,12 +23,14 @@ const TaskFeedScreen = () => {
   const fetchTasks = async () => {
     setIsLoading(true)
     try {
-      // const response = await axios.get(`http://192.168.2.151:3001//tasks?status=pending`) // after testing, replace with api.get('/tasks?status=pending')
-      const response = await api.get('/tasks') // Uncomment this line to use the API client
-      setTasks(response.data)
+      const response = await api.get('/tasks?status=PENDING')
+      console.log('Fetched tasks:', response.data.tasks)
+      setTasks(response.data.tasks)
       setError(null)
       } catch (error) {
-        setError(JSON.stringify(error))
+        logError(error, 'TaskFeedScreen fetchTasks')
+        const message = extractErrorMessage(error)
+        setError(message)
       } finally {
         setIsLoading(false)
       }
@@ -57,7 +60,9 @@ const TaskFeedScreen = () => {
       <CustomHeader title='Available Tasks' />
         <ContentWrapper style={styles.container}>
           { isLoading ? (
-            <Text style={{ fontSize: moderateScale(16), color: colors.infoText }}>Loading tasks...</Text>
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <Loading />
+            </View>
             ) : error ? (
             <Text style={{ fontSize: moderateScale(16), color: '#f00' }}>Error: {error}</Text>
             ) : tasks && tasks.length > 0 ? (

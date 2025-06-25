@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import {  StyleSheet, Text, View } from 'react-native'
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import { moderateScale } from 'react-native-size-matters'
 import { formatDistanceToNow } from 'date-fns';
@@ -6,11 +6,11 @@ import Button from '../../ui/Button'
 import colors from '@/constants/Colors'
 import { useRouter } from 'expo-router'
 import { FontAwesome, FontAwesome6 } from '@expo/vector-icons'
-import { TaskType } from '@/constants/Types'
+import { Task } from '@/constants/Types';
 
 
 type TaskFeedCardProps = {
-  task: TaskType
+  task: Task
 }
 
 const TaskFeedCard = ({ task }: TaskFeedCardProps) => {
