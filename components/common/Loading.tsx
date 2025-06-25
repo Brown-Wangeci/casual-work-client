@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
 
-const Loading = ({message}: { message?: string}) => {
+const Loading = ({message = 'Loading'}: { message?: string}) => {
 
   console.log(message);
 

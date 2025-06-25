@@ -15,6 +15,8 @@ import Hr from '@/components/common/Hr'
 import { TaskInCreation } from '@/constants/Types'
 import ScreenBackground from '@/components/layout/ScreenBackground'
 import api from '@/lib/axios'
+import { extractErrorMessage, logError } from '@/lib/utils'
+import { useTasksStore } from '@/stores/tasksStore'
 
 const PostTaskScreen = () => {
   const [createdTask, setCreatedTask] = useState< TaskInCreation >(
@@ -26,6 +28,7 @@ const PostTaskScreen = () => {
       offer: null,
     }
   );
+  const addPostedTask = useTasksStore((state) => state.addCreatedTask);
 
   const MAX_DESCRIPTION_LENGTH = 400;
   const MAX_TITLE_LENGTH = 50;
@@ -54,19 +57,26 @@ const PostTaskScreen = () => {
     }
 
     try {
-
       const response = await api.post(`/tasks`, { ...createdTask });
-      console.log(response.data);
-      const taskId  = response.data.taskId ;
-      if (taskId) {
-        Alert.alert('Success', 'Task created successfully!');
-        router.push(`/tasks/${taskId}/confirmation`);
+
+      if (
+        response.status === 201 &&
+        response.data &&
+        response.data.task &&
+        typeof response.data.task.id === 'string'
+      ) {
+        const successMessage = response.data.message || 'Task created successfully!';
+        Alert.alert('Success', successMessage);
+        addPostedTask(response.data.task);
+        router.push(`/tasks/${response.data.task.id}/confirmation`);
       } else {
-        Alert.alert('Error', 'Failed to create task. Please try again later.');
+        logError(response, 'Unexpected response structure in handleCreateTask');
+        Alert.alert('Error', 'Unexpected server response. Please try again.');
       }
     } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'Failed to create task. Please try again later.');
+      logError(error, 'handleCreateTask');
+      const message = extractErrorMessage(error);
+      Alert.alert('Error', message);
     }
   };
 

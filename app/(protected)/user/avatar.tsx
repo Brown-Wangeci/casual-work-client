@@ -14,9 +14,9 @@ const AvatarScreen = () => {
 
   return (
     <ScreenBackground >
-      <CustomHeader showBackButton={true} title="Avatar" />
+      <CustomHeader showBackButton={true} title="My Avatar" />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-          <ContentWrapper style={{ alignItems: 'center', justifyContent: 'center' }}>
+          <ContentWrapper style={{ alignItems: 'center', justifyContent: 'center', backgroundColor: 'red' }}>
           <View style={styles.imageContainer}>
               <Image
                   source={

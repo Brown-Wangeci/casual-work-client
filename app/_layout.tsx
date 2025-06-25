@@ -24,18 +24,18 @@ export default function RootLayout() {
   const isHydrated = useAuthStore((state) => state.isHydrated);
 
   useEffect(() => {
-    if (fontsLoaded && isHydrated) {
+    if (fontsLoaded) {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, isHydrated]);
 
   // If fonts are not loaded or session is not hydrated, show loading screen
   if (!fontsLoaded) {
-  return <Loading message="Loading fonts..." />;
+  return <ScreenWrapper style={{ alignitems:'center', justifyContent: 'center' }}><Loading message="Loading fonts..." /></ScreenWrapper>;
   }
 
   if (!isHydrated) {
-    return <Loading message="Restoring session..." />;
+    return <ScreenWrapper style={{ alignitems:'center', justifyContent: 'center' }}><Loading message="Loading fonts..." /></ScreenWrapper>;
   }
 
   return (
