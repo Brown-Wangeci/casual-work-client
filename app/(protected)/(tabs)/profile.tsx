@@ -54,7 +54,7 @@ const ProfileScreen = () => {
       const response = await api.put('/users/me', userInProfile);
 
       if (response.status === 200) {
-        userUpdate(response.data); // Confirm with fresh data from backend
+        userUpdate(response.data.user); // Confirm with fresh data from backend
         Alert.alert('Success', 'Your profile has been updated successfully.');
       } else {
         console.warn('Unexpected response:', response);

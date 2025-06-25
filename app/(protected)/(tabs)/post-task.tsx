@@ -57,7 +57,7 @@ const PostTaskScreen = () => {
 
       const response = await api.post(`/tasks`, { ...createdTask });
       console.log(response.data);
-      const { taskId } = response.data ;
+      const taskId  = response.data.taskId ;
       if (taskId) {
         Alert.alert('Success', 'Task created successfully!');
         router.push(`/tasks/${taskId}/confirmation`);

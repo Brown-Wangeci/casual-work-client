@@ -52,7 +52,7 @@ const Login = () => {
     try {
       const response = await api.post('/auth/login', loginData);
 
-      if (response.status !== 201) {
+      if (response.status !== 200) {
         Alert.alert('Error', 'Invalid credentials. Please try again.');
         return;
       }

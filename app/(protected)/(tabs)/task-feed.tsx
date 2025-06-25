@@ -23,8 +23,8 @@ const TaskFeedScreen = () => {
     setIsLoading(true)
     try {
       // const response = await axios.get(`http://192.168.2.151:3001//tasks?status=pending`) // after testing, replace with api.get('/tasks?status=pending')
-      const response = await api.get('/tasks') // Uncomment this line to use the API client
-      setTasks(response.data)
+      const response = await api.get('/tasks?status=PENDING') // Uncomment this line to use the API client
+      setTasks(response.data.tasks)
       setError(null)
       } catch (error) {
         setError(JSON.stringify(error))
