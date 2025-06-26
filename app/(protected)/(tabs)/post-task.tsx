@@ -29,6 +29,7 @@ const PostTaskScreen = () => {
     }
   );
   const addPostedTask = useTasksStore((state) => state.addCreatedTask);
+  const [ loading, setLoading ] = useState < boolean > (false);
 
   const MAX_DESCRIPTION_LENGTH = 400;
   const MAX_TITLE_LENGTH = 50;
@@ -57,6 +58,8 @@ const PostTaskScreen = () => {
     }
 
     try {
+
+      setLoading(true);
       const response = await api.post(`/tasks`, { ...createdTask });
 
       if (
@@ -66,8 +69,9 @@ const PostTaskScreen = () => {
         typeof response.data.task.id === 'string'
       ) {
         const successMessage = response.data.message || 'Task created successfully!';
-        Alert.alert('Success', successMessage);
+        console.log('Created task:', response.data.task);
         addPostedTask(response.data.task);
+        Alert.alert('Success', successMessage);
         router.push(`/tasks/${response.data.task.id}/confirmation`);
       } else {
         logError(response, 'Unexpected response structure in handleCreateTask');
@@ -77,6 +81,8 @@ const PostTaskScreen = () => {
       logError(error, 'handleCreateTask');
       const message = extractErrorMessage(error);
       Alert.alert('Error', message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -166,7 +172,7 @@ const PostTaskScreen = () => {
             </View>
 
             <View style={styles.buttonContainer}>
-              <Button title="CREATE TASK" type='primary' onPress={ handleCreateTask } />
+              <Button title="CREATE TASK" type='primary' onPress={ handleCreateTask } loading={loading} />
             </View>
           </ContentWrapper>
         </KeyboardAwareScrollView>

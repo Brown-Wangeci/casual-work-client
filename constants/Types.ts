@@ -1,4 +1,4 @@
-type Status = 'created' | 'pending' | 'in_progress' | 'completed' | 'cancelled';
+type Status = 'CREATED' | 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 
 type Task = {
   id: string;
@@ -25,8 +25,18 @@ type User = {
   tasksPosted: number;
   tasksCompleted: number;
   isTasker: boolean;
-  createdAt: string; // ISO string
-  updatedAt: string; // ISO string
+  createdAt: Date; // ISO string
+  updatedAt: Date; // ISO string
+};
+
+type TaskApplicationStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED';
+
+type TaskApplication = {
+  id: string;
+  appliedAt: Date;
+  status: TaskApplicationStatus;
+  task: Task;
+  tasker: User;
 };
 
 type Review = {
@@ -67,4 +77,4 @@ type CategoryOption = {
   value: string;
 };
 
-export type { Task, User, Status, TaskInCreation, CategoryOption, Review, SignUpData, LoginData };
+export type { Task, User, Status, TaskInCreation, CategoryOption, Review, SignUpData, LoginData, TaskApplication, TaskApplicationStatus };

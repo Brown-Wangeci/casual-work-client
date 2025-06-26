@@ -6,13 +6,13 @@ const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
 export const calculateProgress = (status: Status ): number => {
     switch (status) {
-        case 'pending':
+        case 'PENDING':
         return 0;
-        case 'in_progress':
+        case 'IN_PROGRESS':
         return 50;
-        case 'completed':
+        case 'COMPLETED':
         return 100;
-        case 'cancelled':
+        case 'CANCELLED':
         return 150;
         default:
         return 0;
@@ -21,13 +21,13 @@ export const calculateProgress = (status: Status ): number => {
 
 export const formatStatus = (status: Status): string => {
     switch (status) {
-        case 'pending':
+        case 'PENDING':
             return 'Pending';
-        case 'in_progress':
+        case 'IN_PROGRESS':
             return 'In Progress';
-        case 'completed':
+        case 'COMPLETED':
             return 'Completed';
-        case 'cancelled':
+        case 'CANCELLED':
             return 'Cancelled';
         default:
             return 'Unknown Status';

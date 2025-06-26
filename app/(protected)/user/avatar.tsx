@@ -16,7 +16,7 @@ const AvatarScreen = () => {
     <ScreenBackground >
       <CustomHeader showBackButton={true} title="My Avatar" />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-          <ContentWrapper style={{ alignItems: 'center', justifyContent: 'center', backgroundColor: 'red' }}>
+          <ContentWrapper style={{ alignItems: 'center', justifyContent: 'center'}}>
           <View style={styles.imageContainer}>
               <Image
                   source={
@@ -48,8 +48,10 @@ const styles = StyleSheet.create({
     paddingVertical: hp('3%'),
   },
   imageContainer: {
-    aspectRatio: 1/1,
     width: '100%',
+    aspectRatio: 1/1,
+    borderRadius: '50%',
+    borderStyle: 'solid',
     overflow: 'hidden',
     alignSelf: 'center',
   },

@@ -23,6 +23,7 @@ const TaskConfirmationScreen = () => {
   const task = id ? getPostedTaskById(id as string) : null;
 
   const [phone, setPhone] = useState<string>('');
+  const [ loading, setLoading ] = useState < boolean > (false);
 
   useEffect(() => {
     if (task?.taskPoster?.phone) {
@@ -33,6 +34,9 @@ const TaskConfirmationScreen = () => {
   const handleConfirmTask = async () => {
     try {
       const formattedPhone = formatPhoneNumber(phone);
+
+      setLoading(true);
+
       const response = await api.post(`/tasks/${id}/confirm`, {
         phoneNumber: formattedPhone,
       });
@@ -49,6 +53,8 @@ const TaskConfirmationScreen = () => {
         ? error.message
         : extractErrorMessage(error);
       Alert.alert('Error', message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -126,7 +132,7 @@ const TaskConfirmationScreen = () => {
                 keyboardType='phone-pad'
               />
             </View>
-            <Button title="CONFIRM TASK" type='primary' onPress={handleConfirmTask} />
+            <Button title="CONFIRM TASK" type='primary' onPress={handleConfirmTask} loading={loading} />
           </ContentWrapper>
         </KeyboardAwareScrollView>
       </TouchableWithoutFeedback>

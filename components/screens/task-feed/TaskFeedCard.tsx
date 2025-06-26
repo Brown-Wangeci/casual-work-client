@@ -5,7 +5,7 @@ import { formatDistanceToNow } from 'date-fns';
 import Button from '../../ui/Button'
 import colors from '@/constants/Colors'
 import { useRouter } from 'expo-router'
-import { FontAwesome, FontAwesome6 } from '@expo/vector-icons'
+import { Ionicons } from '@expo/vector-icons'
 import { Task } from '@/constants/Types';
 
 
@@ -19,17 +19,25 @@ const TaskFeedCard = ({ task }: TaskFeedCardProps) => {
 
   // Navigation to task details page
   const onNavigateToTaskDetails = () => {
-    router.push(`/tasks/${task.id}/confirmation`);
+    router.push(`/tasks/${task.id}/apply`);
   }
 
   // Truncate text to a specified word limit
   const truncateText = (text: string, wordLimit: number) => {
+    if (!text) return '';
     const words = text.split(" ");
     if (words.length > wordLimit) {
       return words.slice(0, wordLimit).join(" ") + "...";
     }
     return text;
   };
+
+  let timeSince;
+  if (task.createdAt) {
+    timeSince = formatDistanceToNow(new Date(task.createdAt), { addSuffix: true });
+  } else {
+    timeSince = "";
+  }
 
 
   return (
@@ -38,12 +46,12 @@ const TaskFeedCard = ({ task }: TaskFeedCardProps) => {
       <Text style={styles.textTitle}>{truncateText(task.description, 15)}</Text>
       <View style={styles.locationAndDateOuterContainer}>
         <View style={styles.locationAndDateContainer}>
-          <FontAwesome name="map-pin" size={16} color='#FD42C8' />
+          <Ionicons name="location-sharp" size={16} color='#FD42C8' />
           <Text style={styles.textTitle}>{task.location}</Text>
         </View>
         <View style={styles.locationAndDateContainer}>
-          <FontAwesome6 name="clock" size={16} color='#DAA520' />
-          <Text style={styles.textTitle}>{formatDistanceToNow(new Date(task.updatedAt), { addSuffix: true })}</Text>
+          <Ionicons name="time-outline" size={16} color='#DAA520' />
+          <Text style={styles.textTitle}>{timeSince}</Text>
         </View>
       </View>
       <View style={styles.offerContainer}>

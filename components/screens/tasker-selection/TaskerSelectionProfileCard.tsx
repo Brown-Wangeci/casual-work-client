@@ -5,21 +5,54 @@ import { Image } from 'expo-image'
 import StarRating from '@/components/common/StarRating'
 import Button from '@/components/ui/Button'
 import colors from '@/constants/Colors'
-import { User } from '@/constants/Types'
 import { useRouter } from 'expo-router'
+import { useTempUserStore } from '@/stores/tempUserStore'
+import { TaskApplication } from '@/constants/Types'
+import api from '@/lib/axios'
+import { extractErrorMessage, logError } from '@/lib/utils'
 
-const TaskerSelectionProfileCard = ( { tasker }: { tasker: User } ) => {
+const TaskerSelectionProfileCard = ( { application }: { application: TaskApplication } ) => {
 
-  const taskerId = tasker.id;
+  const tasker = application.tasker;
   const router = useRouter();
   
   const onViewProfile = () => {
-    router.push(`/user/${taskerId}`);
+    if (tasker) {
+      useTempUserStore.getState().setUserProfile(tasker);
+      router.push(`/user/${tasker.id}`);
+    }
   }
 
-  const onSelectTasker = () => {
-    Alert.alert('Tasker Selected', `You have selected ${tasker.username} as your tasker.`);
-  }
+  const onAcceptApplication = async () => {
+    try {
+      const confirm = await new Promise<boolean>((resolve) => {
+        Alert.alert(
+          'Confirm',
+          `Are you sure you want to accept ${tasker.username}'s application?`,
+          [
+            { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+            { text: 'Accept', onPress: () => resolve(true) },
+          ]
+        );
+      });
+
+      if (!confirm) return;
+
+      const response = await api.post(`/applications/${application.id}/accept`);
+      
+      if (response.status === 200 || response.status === 201) {
+        Alert.alert('Success', response.data.message || 'Application accepted successfully.');
+        router.replace('/');
+      } else {
+        Alert.alert('Error', 'Unexpected error. Please try again.');
+      }
+
+    } catch (error) {
+      logError(error, 'TaskerSelectionProfileCard > onAcceptApplication');
+      const message = extractErrorMessage(error);
+      Alert.alert('Error', message || 'Failed to accept application. Please try again.');
+    }
+  };
 
   return (
     <View style={styles.card}>
@@ -45,7 +78,7 @@ const TaskerSelectionProfileCard = ( { tasker }: { tasker: User } ) => {
           <Button title="View" type="secondary" onPress={ onViewProfile } />
         </View>
         <View style={styles.buttonWrapper}>
-          <Button title="Select" type="primary" onPress={ onSelectTasker } />
+          <Button title="Accept" type="primary" onPress={ onAcceptApplication } />
         </View>
       </View>
     </View>
