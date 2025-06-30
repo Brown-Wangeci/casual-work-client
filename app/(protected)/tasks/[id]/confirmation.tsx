@@ -42,6 +42,12 @@ const TaskConfirmationScreen = () => {
       });
 
       if (response.status === 200 || response.status === 201) {
+        console.log('Task confirmation response:', response.data);
+        const { data } = response.data;
+        if (data) {
+          // Update the task in the store
+          useTasksStore.getState().updateTask(data.task);
+        }
         Alert.alert('Success', response.data.message || 'Payment prompt sent to your phone. Please input your pin to confirm payment.');
         router.push('/');
       } else {
@@ -69,7 +75,7 @@ const TaskConfirmationScreen = () => {
     );
   }
 
-  const serviceFee = process.env.EXPO_PUBLIC_SERVICE_FEE ? parseFloat(process.env.EXPO_PUBLIC_SERVICE_FEE) : 25;
+  const serviceFee = process.env.EXPO_PUBLIC_SERVICE_FEE ? parseFloat(process.env.EXPO_PUBLIC_SERVICE_FEE) : 2;
   const taskPoster = task.taskPoster;
 
   return (

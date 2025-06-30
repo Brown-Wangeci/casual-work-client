@@ -11,10 +11,12 @@ import api from '@/lib/axios'
 import { extractErrorMessage, logError } from '@/lib/utils'
 import Loading from '@/components/common/Loading'
 import { View } from 'react-native'
+import { useTaskFeedStore } from '@/stores/taskFeedStore'
 
 const TaskFeedScreen = () => {
 
-  const [ tasks, setTasks ] = useState<Task[] | null>(null)
+  const tasks = useTaskFeedStore((state) => state.tasks)
+  const setTasks = useTaskFeedStore((state) => state.setTasks)
   const [ isLoading, setIsLoading ] = useState<boolean>(true)
   const [ error, setError ] = useState<string | null>(null)
   const [ isRefreshing, setIsRefreshing ] = useState(false)
@@ -61,7 +63,7 @@ const TaskFeedScreen = () => {
         <ContentWrapper style={styles.container}>
           { isLoading ? (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-              <Loading />
+              <Loading message='Loading task feed' />
             </View>
             ) : error ? (
             <Text style={{ fontSize: moderateScale(16), color: '#f00' }}>Error: {error}</Text>

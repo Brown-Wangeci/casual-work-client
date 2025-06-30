@@ -5,7 +5,7 @@ import { moderateScale } from 'react-native-size-matters'
 type TaskTabProps = {
     title: string
     onPress: () => void
-    tab: 'Posted' | 'Assigned' | 'Applied'
+    tab: 'Posted' | 'Assigned' | 'Applications'
 }
 
 const TaskTab = ({ title, onPress, tab }: TaskTabProps) => {

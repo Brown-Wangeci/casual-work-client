@@ -14,9 +14,12 @@ import { useRouter } from 'expo-router';
 
 import { useAuthStore } from '@/stores/authStore';
 import { useTasksStore } from '@/stores/tasksStore';
-import TaskFeedCard from '@/components/screens/task-feed/TaskFeedCard';
 import TaskTab from '@/components/screens/dashboard/TaskTab';
 import Loading from '@/components/common/Loading';
+import ApplicationTaskCard from '@/components/screens/dashboard/ApplicationTaskCard';
+import AssignedTaskCard from '@/components/screens/dashboard/AssignedTaskCard';
+import PostedTaskCard from '@/components/screens/dashboard/PostedTaskCard';
+import { Task, TaskApplication } from '@/constants/Types';
 
 const DashboardScreen = () => {
   const router = useRouter();
@@ -27,10 +30,10 @@ const DashboardScreen = () => {
     fetchUserTasks,
     posted,
     assigned,
-    appliedTo,
+    applications,
   } = useTasksStore();
 
-  const [selectedTab, setSelectedTab] = useState<'Posted' | 'Assigned' | 'Applied'>('Posted');
+  const [selectedTab, setSelectedTab] = useState<'Posted' | 'Assigned' | 'Applications'>('Posted');
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -55,16 +58,16 @@ const DashboardScreen = () => {
   const onNavigateToPostTaskScreen = () => router.push('/post-task');
   const onNavigateToTaskFeedScreen = () => router.push('/task-feed');
 
-  const taskTabs = ['Posted', 'Assigned', 'Applied'];
+  const taskTabs = ['Posted', 'Assigned', 'Applications'];
 
-  const getFilteredTasks = () => {
+  const getFilteredTasks = (): (Task | TaskApplication)[] => {
     switch (selectedTab) {
       case 'Posted':
         return posted;
       case 'Assigned':
         return assigned;
-      case 'Applied':
-        return appliedTo;
+      case 'Applications':
+        return applications;
       default:
         return [];
     }
@@ -108,18 +111,26 @@ const DashboardScreen = () => {
 
           <View style={styles.recentActivityContainer}>
             {loading ? (
-              // <Text style={styles.infoText}>Loading recent tasks...</Text>
               <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: moderateScale(20, 0.2) }}>
-                <Loading message='Loading tasks' />
+                <Loading message='Loading user tasks' />
               </View>
             ) : error ? (
               <Text style={styles.errorText}>{error}</Text>
             ) : filteredTasks.length === 0 ? (
               <Text style={styles.infoText}>No tasks in this category yet.</Text>
             ) : (
-              filteredTasks.map((task) => (
-                <TaskFeedCard key={task.id} task={task} />
-              ))
+              filteredTasks.map((item) => {
+                if (selectedTab === 'Posted') {
+                  return <PostedTaskCard key={(item as Task).id} task={item as Task} />;
+                }
+                if (selectedTab === 'Assigned') {
+                  return <AssignedTaskCard key={(item as Task).id} task={item as Task} />;
+                }
+                if (selectedTab === 'Applications') {
+                  return <ApplicationTaskCard key={(item as TaskApplication).id} taskApplication={item as TaskApplication} />;
+                }
+                return null;
+              })
             )}
           </View>
         </ContentWrapper>

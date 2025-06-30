@@ -2,34 +2,21 @@ import {  StyleSheet, Text, View } from 'react-native'
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import { moderateScale } from 'react-native-size-matters'
 import { formatDistanceToNow } from 'date-fns';
-import Button from '../../ui/Button'
 import colors from '@/constants/Colors'
-import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
-import { Task, TaskApplication } from '@/constants/Types';
+import { Task } from '@/constants/Types';
+import Button from '@/components/ui/Button';
+import { useRouter } from 'expo-router';
 import TaskStatus from '@/components/common/TaskStatus';
 
 
-type TaskFeedCardProps = {
-  task: Task | TaskApplication 
+type PostedTaskCardProps = {
+  task: Task 
 }
 
-const TaskFeedCard = ({ task }: TaskFeedCardProps) => {
-
-  // Change all this after the task application refactor
-  const isApplication = (t: Task | TaskApplication): t is TaskApplication => {
-    return 'task' in t;
-  };
-
-  const actualTask = isApplication(task) ? task.task : task;
+const PostedTaskCard = ({ task }: PostedTaskCardProps) => {
 
   const router = useRouter();
-
-
-  // Navigation to task details page
-  const onNavigateToTaskDetails = () => {
-    router.push(`/tasks/${task.id}/apply`);
-  }
 
   // Truncate text to a specified word limit
   const truncateText = (text: string, wordLimit: number) => {
@@ -42,8 +29,8 @@ const TaskFeedCard = ({ task }: TaskFeedCardProps) => {
   };
 
   let timeSince;
-  if (actualTask.createdAt) {
-    timeSince = formatDistanceToNow(new Date(actualTask.createdAt), { addSuffix: true });
+  if (task.createdAt) {
+    timeSince = formatDistanceToNow(new Date(task.createdAt), { addSuffix: true });
   } else {
     timeSince = "";
   }
@@ -51,30 +38,38 @@ const TaskFeedCard = ({ task }: TaskFeedCardProps) => {
 
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>{truncateText(actualTask.title, 5)}</Text>
-      <Text style={styles.textTitle}>{truncateText(actualTask.description, 15)}</Text>
+      <Text style={styles.title}>{truncateText(task.title, 5)}</Text>
+      <Text style={styles.textTitle}>{truncateText(task.description, 15)}</Text>
       <View style={styles.locationAndDateOuterContainer}>
         <View style={styles.locationAndDateContainer}>
           <Ionicons name="location-sharp" size={16} color='#FD42C8' />
-          <Text style={styles.textTitle}>{actualTask.location}</Text>
+          <Text style={styles.textTitle}>{task.location}</Text>
         </View>
         <View style={styles.locationAndDateContainer}>
           <Ionicons name="time-outline" size={16} color='#DAA520' />
           <Text style={styles.textTitle}>{timeSince}</Text>
         </View>
       </View>
-      <TaskStatus status={actualTask.status} />
+      <TaskStatus status={task.status} />
       <View style={styles.offerContainer}>
-        <Text style={styles.textTitle}>Offer: <Text style={styles.improvedOfferText}>Ksh.{actualTask.offer}</Text></Text>
+        <Text style={styles.textTitle}>Offer: <Text style={styles.improvedOfferText}>Ksh.{task.offer}</Text></Text>
         <View>
-          <Button title="View Task" type="primary" small onPress={onNavigateToTaskDetails} />
+          { task.status === 'IN_PROGRESS' ? (
+            <Button title="Track Progress" type="primary" small onPress={()=>{ router.push(`/tasks/${task.id}/track`) }} />
+          ) : task.status === 'CREATED' ? (
+            <Button title="Confirm Task" type="primary" small onPress={()=>{ router.push(`/tasks/${task.id}/confirmation`) }} /> 
+          ) : task.status === 'PENDING' ? (
+            <Button title="View Applications" type="primary" small onPress={()=>{ router.push(`/tasks/${task.id}/tasker-selection`) }} />
+          ) : (
+            <Button title="View Task" type="primary" small onPress={()=>{ router.push(`/tasks/${task.id}`) }} />
+          )}
         </View>
       </View>
     </View>
   )
 }
 
-export default TaskFeedCard
+export default PostedTaskCard
 
 const styles = StyleSheet.create({
   card: {

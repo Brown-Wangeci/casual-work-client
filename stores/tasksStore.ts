@@ -1,24 +1,27 @@
 import { create } from 'zustand';
 import api from '@/lib/axios';
-import { Task } from '@/constants/Types';
+import { Task, TaskApplication } from '@/constants/Types';
 
 interface TasksState {
   posted: Task[];
   assigned: Task[];
-  appliedTo: Task[];
+  applications: TaskApplication[];
   loading: boolean;
   error: string | null;
   fetchUserTasks: () => Promise<void>;
   updateTask: (updatedTask: Task) => void;
+  updateTaskApplication: (updatedApplication: TaskApplication) => void;
   addCreatedTask: (newTask: Task) => void;
+  addTaskApplication: (newApplication: TaskApplication) => void;
   getCreatedTaskById: (id: string) => Task | undefined;
   clearTasks: () => void;
+  clearApplications: () => void;
 }
 
 export const useTasksStore = create<TasksState>((set) => ({
   posted: [],
   assigned: [],
-  appliedTo: [],
+  applications: [],
   loading: false,
   error: null,
 
@@ -26,10 +29,11 @@ export const useTasksStore = create<TasksState>((set) => ({
     set({ loading: true, error: null });
     try {
       const response = await api.get('user/tasks');
+      console.log('Fetched user tasks:', response.data.tasks);
       set({
         posted: response.data.tasks.posted ?? [],
         assigned: response.data.tasks.assigned ?? [],
-        appliedTo: response.data.tasks.applied ?? [],
+        applications: response.data.tasks.applied ?? [],
         loading: false,
       });
     } catch (error: any) {
@@ -48,9 +52,6 @@ export const useTasksStore = create<TasksState>((set) => ({
       assigned: state.assigned.map((task) =>
         task.id === updatedTask.id ? { ...task, ...updatedTask } : task
       ),
-      appliedTo: state.appliedTo.map((task) =>
-        task.id === updatedTask.id ? { ...task, ...updatedTask } : task
-      ),
     })),
 
   addCreatedTask: (newTask: Task) =>
@@ -62,6 +63,24 @@ export const useTasksStore = create<TasksState>((set) => ({
         };
     }),
 
+  addTaskApplication: (newApplication: TaskApplication) =>
+    set((state) => {
+      const exists = state.applications.some((application) => application.id === newApplication.id);
+      if (exists) return {}; // Skip if duplicate
+      return {
+        applications: [newApplication, ...state.applications],
+      };
+    }),
+
+  updateTaskApplication: (updatedApplication: TaskApplication) =>
+    set((state) => ({
+      applications: state.applications.map((application) =>
+        application.id === updatedApplication.id
+          ? { ...application, ...updatedApplication }
+          : application
+      ),
+    })),
+
   getCreatedTaskById: (id: string): Task | undefined => {
     return useTasksStore.getState().posted.find((task: Task) => task.id === id);
   },
@@ -70,8 +89,12 @@ export const useTasksStore = create<TasksState>((set) => ({
     set({
       posted: [],
       assigned: [],
-      appliedTo: [],
       loading: false,
       error: null,
     }),
+
+  clearApplications: () =>
+    set({
+      applications: [],
+      }),
 }));

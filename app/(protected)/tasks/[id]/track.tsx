@@ -152,8 +152,8 @@ const TaskTrackingScreen = () => {
                 )}
                 
                 <View style={styles.ctaContainer}>
-                  { task.status !== "pending" || "cancelled" ? <Button title="APPROVE TASK COMPLETION" type='primary' onPress={()=>{}} /> : null }
-                  { task.status === "pending"  && <Button title="CANCEL TASK" type='cancel' onPress={()=>{}} />}
+                  { task.status !== "PENDING" || "cancelled" ? <Button title="APPROVE TASK COMPLETION" type='primary' onPress={()=>{}} /> : null }
+                  { task.status === "PENDING"  && <Button title="CANCEL TASK" type='cancel' onPress={()=>{}} />}
                 </View>
               </>
             ) : (

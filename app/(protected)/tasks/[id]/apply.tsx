@@ -1,4 +1,4 @@
-import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Image } from 'expo-image'
 import colors from '@/constants/Colors'
@@ -14,55 +14,62 @@ import CustomHeader from '@/components/layout/CustomHeader'
 import { Task } from '@/constants/Types'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import ScreenBackground from '@/components/layout/ScreenBackground'
-import api from '@/lib/axios'
 import Loading from '@/components/common/Loading'
 import { formatDistanceToNow } from 'date-fns'
-import Hr from '@/components/common/Hr'
 import { extractErrorMessage, logError } from '@/lib/utils'
 import { useTempUserStore } from '@/stores/tempUserStore'
-
+import { useTaskFeedStore } from '@/stores/taskFeedStore'
+import api from '@/lib/axios'
+import { useAuthStore } from '@/stores/authStore'
+import { useTasksStore } from '@/stores/tasksStore'
 
 const TaskApplicationScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
-  const [ loading, setLoading ] = useState< boolean >(true);
-  const [ error, setError ] = useState< string | null >(null);
-  const [ task, setTask ] = useState< Task | null >(null);
-  const [ address, setAddress ] = useState('');
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isApplying, setIsApplying] = useState(false);
+  const updateTask = useTaskFeedStore((state) => state.updateTask);
+  const addTaskApplication = useTasksStore((state) => state.addTaskApplication);
+  const [error, setError] = useState<string | null>(null);
+  const [task, setTask] = useState<Task | null>(null);
+  const [address, setAddress] = useState('');
   const [mapHeight, setMapHeight] = useState(hp('30%'));
 
   const router = useRouter();
-
+  const { id } = useLocalSearchParams();
+  const getTaskById = useTaskFeedStore((state) => state.getTaskById);
+  const fetchUserTasks = useTasksStore((state) => state.fetchUserTasks);
 
   const toggleMapHeight = () => {
     setMapHeight(prevHeight => (prevHeight === hp('30%') ? hp('70%') : hp('30%')));
   };
 
-  const { id } = useLocalSearchParams();
-
   const fetchTaskDetails = async () => {
     setLoading(true);
     setError(null);
 
-    try {
-        const response = await api.get(`/tasks/${id}`);
-
-        if (!response.data || !response.data.task) {
-        throw new Error('Unexpected response format: task not found.');
-        }
-
-        const taskData = response.data.task;
-        console.log('Fetched task details:', taskData);
-        setTask(taskData);
-    } catch (error: any) {
-        logError(error, 'fetchTaskDetails');
-        const message = extractErrorMessage(error);
-        console.warn('Fetch task error:', message);
-        setError(message || 'Failed to load task details. Please try again later.');
-    } finally {
-        setLoading(false);
+    const cachedTask = getTaskById(id as string);
+    if (cachedTask) {
+      setTask(cachedTask);
+      setLoading(false);
+      return;
     }
-    };
 
+    try {
+      const response = await api.get(`/tasks/${id}`);
+      if (!response.data || !response.data.task) {
+        throw new Error('Unexpected response format: task not found.');
+      }
+      const taskData = response.data.task;
+      setTask(taskData);
+    } catch (error: any) {
+      logError(error, 'fetchTaskDetails');
+      const message = extractErrorMessage(error);
+      console.warn('Fetch task error:', message);
+      setError(message || 'Failed to load task details. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -72,80 +79,129 @@ const TaskApplicationScreen = () => {
 
   const onContactTaskPoster = () => {
     if (task?.taskPoster) {
-    useTempUserStore.getState().setUserProfile(task.taskPoster);
-    router.push(`/user/${task.taskPoster.id}`);
-  }
-  }
-
+      useTempUserStore.getState().setUserProfile(task.taskPoster);
+      router.push(`/user/${task.taskPoster.id}`);
+    }
+  };
 
   useEffect(() => {
     fetchTaskDetails();
   }, [id]);
 
 
+  const onApplyForTask = async () => {
+    if (!task || !id) {
+      Alert.alert('Task information is missing. Please try again later.');
+      return;
+    }
+
+    const user = useAuthStore.getState().user;
+    if (!user) {
+      Alert.alert('You must be logged in to apply.');
+      return;
+    }
+
+    if (!user.isTasker) {
+      Alert.alert('You must be available as a tasker to apply for tasks.');
+      return;
+    }
+
+    const alreadyApplied = task.taskersApplied?.some(u => u.id === user.id);
+    if (alreadyApplied) {
+      Alert.alert('You have already applied for this task.');
+      return;
+    }
+
+    setIsApplying(true);
+
+    try {
+      const response = await api.post(`/tasks/${id}/apply`);
+      console.log('Task application response:', response.data);
+
+      if (response.status === 201 || response.data?.success) {
+        
+        const message = response.data?.message || 'You have successfully applied for the task';
+        console.log('Task application response:', response.data.data);
+        updateTask(response.data.data.task);
+        addTaskApplication(response.data.data);
+        Alert.alert(message);
+        router.push(`/`);
+        fetchUserTasks(); // Refresh user tasks after applying
+      } else {
+        const message = response.data?.message || 'Unexpected response from the server.';
+        Alert.alert(message);
+      }
+    } catch (error) {
+      logError(error, 'onApplyForTask');
+      const message = extractErrorMessage(error);
+      Alert.alert(message || 'Failed to apply for the task. Please try again.');
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
+
   return (
     <ScreenBackground>
       <CustomHeader title='Task Details' showBackButton />
       <ScrollView
-        contentContainerStyle={ styles.scrollContainer }
+        contentContainerStyle={styles.scrollContainer}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         <ContentWrapper>
-          {
-            loading ? (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <Loading />
-                </View>
-            ) : error ? (
-              <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.red }}>Error: {error}</Text>
-            ) : task ? (
-              <>
-                <Text style={styles.title}>{task.title}</Text>
-                <View style={styles.categoryAndOfferContainer}>
-                  { task?.category && <Tag label={task.category} />}
-                  <Text style={styles.finalOffer}>Ksh. {task.offer}</Text>
-                </View>
+          {loading ? (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <Loading message='Loading Taskfeed task' />
+            </View>
+          ) : error ? (
+            <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.red }}>Error: {error}</Text>
+          ) : task ? (
+            <>
+              <Text style={styles.title}>{task.title}</Text>
+              <View style={styles.categoryAndOfferContainer}>
+                {task?.category && <Tag label={task.category} />}
+                <Text style={styles.finalOffer}>Ksh. {task.offer}</Text>
+              </View>
 
-                <Text style={styles.subTitle}>Description</Text>
-                <Text style={styles.description}>{task.description}</Text>
+              <Text style={styles.subTitle}>Description</Text>
+              <Text style={styles.description}>{task.description}</Text>
 
-                <Text style={styles.subTitle}>Location</Text>
-                <Text style={styles.description}>{address}</Text>
-                <View style={[styles.mapViewContainer, { height: mapHeight }]}>
-                  <LiveMapView setAddress={setAddress} address={address} />
-                </View>
-                <TouchableOpacity onPress={toggleMapHeight}>
-                  <FontAwesome6 name={mapHeight === hp('30%') ? 'expand': 'compress' } size={24} color={colors.text.bright} style={styles.resizeIcon} />
-                </TouchableOpacity>
+              <Text style={styles.subTitle}>Location</Text>
+              <Text style={styles.description}>{address}</Text>
+              <View style={[styles.mapViewContainer, { height: mapHeight }]}>
+                <LiveMapView setAddress={setAddress} address={address} />
+              </View>
+              <TouchableOpacity onPress={toggleMapHeight}>
+                <FontAwesome6 name={mapHeight === hp('30%') ? 'expand' : 'compress'} size={24} color={colors.text.bright} style={styles.resizeIcon} />
+              </TouchableOpacity>
 
-                <Text style={styles.subTitle}>Posted Time</Text>
-                <Text style={styles.description}>{formatDistanceToNow(new Date(task.updatedAt), { addSuffix: true })}</Text>
+              <Text style={styles.subTitle}>Posted Time</Text>
+              <Text style={styles.description}>{formatDistanceToNow(new Date(task.updatedAt), { addSuffix: true })}</Text>
 
-                <Text style={styles.subTitle}>Task Poster</Text>
-                <View style={styles.taskPoster}>
-                    <View style={styles.imageContainer}>
-                    <Image
-                        source={task.taskPoster?.profilePicture ? { uri: task.taskPoster.profilePicture } : require('@/assets/images/user.jpg')}
-                        style={styles.image}
-                    />
-                    </View>
-                    <View style={styles.taskPosterDetails}>
-                    <Text style={styles.name}>{ task.taskPoster?.username }</Text>
-                    <StarRating rating={task.taskPoster?.rating!} size={16} />
-                    </View>
-                    <View style={styles.buttonContainer}>
-                    <Button title="Contact" type='secondary' small onPress={onContactTaskPoster} />
-                    </View>
+              <Text style={styles.subTitle}>Task Poster</Text>
+              <View style={styles.taskPoster}>
+                <View style={styles.imageContainer}>
+                  <Image
+                    source={task.taskPoster?.profilePicture ? { uri: task.taskPoster.profilePicture } : require('@/assets/images/user.jpg')}
+                    style={styles.image}
+                  />
                 </View>
-                
-                <View style={styles.ctaContainer}>
-                    <Button title='APPLY FOR TASK' type='primary' onPress={() => router.push(`/tasks/${id}/apply`)} />
+                <View style={styles.taskPosterDetails}>
+                  <Text style={styles.name}>{task.taskPoster?.username}</Text>
+                  <StarRating rating={task.taskPoster?.rating!} size={16} />
                 </View>
-              </>
-            ) : (
-              <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>No task details available.</Text>
-            )
-          }
+                <View style={styles.buttonContainer}>
+                  <Button title="Contact" type='secondary' small onPress={onContactTaskPoster} />
+                </View>
+              </View>
+
+              <View style={styles.ctaContainer}>
+                <Button title='APPLY FOR TASK' type='primary' onPress={onApplyForTask} loading={isApplying} />
+              </View>
+            </>
+          ) : (
+            <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>No task details available.</Text>
+          )}
         </ContentWrapper>
       </ScrollView>
     </ScreenBackground>
@@ -153,7 +209,6 @@ const TaskApplicationScreen = () => {
 }
 
 export default TaskApplicationScreen
-
 
 const styles = StyleSheet.create({
   scrollContainer: {
@@ -179,16 +234,6 @@ const styles = StyleSheet.create({
     color: colors.text.green,
     marginLeft: wp('8%'),
   },
-  status: {
-    color: colors.text.light,
-    fontSize: moderateScale(14, 0.2),
-    fontFamily: 'poppins-regular',
-  },
-  statusState: {
-    color: colors.text.bright,
-    fontSize: moderateScale(14, 0.2),
-    fontFamily: 'poppins-bold',
-  },
   subTitle: {
     color: colors.text.bright,
     fontSize: moderateScale(16, 0.2),
@@ -199,9 +244,6 @@ const styles = StyleSheet.create({
     color: colors.text.light,
     fontSize: moderateScale(14, 0.2),
     fontFamily: 'poppins-regular',
-  },
-  progressBarContainer: {
-    marginVertical: hp('1%'),
   },
   mapViewContainer: {
     width: '100%',
@@ -216,7 +258,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginTop: hp('1%'),
   },
-
   taskPoster: {
     flexDirection: 'row',
     flexWrap: 'wrap',

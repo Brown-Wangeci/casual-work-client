@@ -81,10 +81,10 @@ const SignUp = () => {
         profilePicture: `https://api.dicebear.com/7.x/lorelei/svg?seed=${signUpData.username}`,
       });
 
-      if (response.status === 201 && response.data?.user && response.data?.token) {
-        const { user, token, message } = response.data;
+      if (response.status === 201 && response.data?.result?.user && response.data?.result?.token) {
+        const { user, token } = response.data.result;
         useAuthStore.getState().login(user, token);
-        Alert.alert('Success', message || 'Account created successfully!');
+        // Alert.alert('Success', 'Account created successfully!');
       } else {
         logError(response, 'Unexpected signup response');
         Alert.alert('Signup Error', 'Unexpected error. Please try again.');
@@ -169,7 +169,7 @@ const SignUp = () => {
 
             <InfoText style={{ marginBottom: hp('4%'), width: '100%' }}>Already have an account? <Text style={{ color: colors.text.light }} onPress={() => { router.push('/login'); }}>Login</Text></InfoText>
 
-            <Button title="CREATE ACCOUNT" type='primary' onPress={handleSignUp} loading />
+            <Button title="CREATE ACCOUNT" type='primary' onPress={handleSignUp} loading={loading} />
             <Text style={styles.optionText}>Or Sign Up with</Text>
             <TouchableOpacity style={styles.googleIconContainer} onPress={onSignUpWithGoogle} disabled={loading}>
               <FontAwesome6 name="google" size={36} color={colors.text.bright} />
