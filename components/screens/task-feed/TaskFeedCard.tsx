@@ -6,22 +6,15 @@ import Button from '../../ui/Button'
 import colors from '@/constants/Colors'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
-import { Task, TaskApplication } from '@/constants/Types';
+import { Task } from '@/constants/Types';
 import TaskStatus from '@/components/common/TaskStatus';
 
 
 type TaskFeedCardProps = {
-  task: Task | TaskApplication 
+  task: Task 
 }
 
 const TaskFeedCard = ({ task }: TaskFeedCardProps) => {
-
-  // Change all this after the task application refactor
-  const isApplication = (t: Task | TaskApplication): t is TaskApplication => {
-    return 'task' in t;
-  };
-
-  const actualTask = isApplication(task) ? task.task : task;
 
   const router = useRouter();
 
@@ -42,8 +35,8 @@ const TaskFeedCard = ({ task }: TaskFeedCardProps) => {
   };
 
   let timeSince;
-  if (actualTask.createdAt) {
-    timeSince = formatDistanceToNow(new Date(actualTask.createdAt), { addSuffix: true });
+  if (task.updatedAt) {
+    timeSince = formatDistanceToNow(new Date(task.updatedAt), { addSuffix: true });
   } else {
     timeSince = "";
   }
@@ -51,21 +44,21 @@ const TaskFeedCard = ({ task }: TaskFeedCardProps) => {
 
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>{truncateText(actualTask.title, 5)}</Text>
-      <Text style={styles.textTitle}>{truncateText(actualTask.description, 15)}</Text>
+      <Text style={styles.title}>{truncateText(task.title, 5)}</Text>
+      <Text style={styles.textTitle}>{truncateText(task.description, 15)}</Text>
       <View style={styles.locationAndDateOuterContainer}>
         <View style={styles.locationAndDateContainer}>
           <Ionicons name="location-sharp" size={16} color='#FD42C8' />
-          <Text style={styles.textTitle}>{actualTask.location}</Text>
+          <Text style={styles.textTitle}>{task.location}</Text>
         </View>
         <View style={styles.locationAndDateContainer}>
           <Ionicons name="time-outline" size={16} color='#DAA520' />
           <Text style={styles.textTitle}>{timeSince}</Text>
         </View>
       </View>
-      <TaskStatus status={actualTask.status} />
+      <TaskStatus status={task.status} />
       <View style={styles.offerContainer}>
-        <Text style={styles.textTitle}>Offer: <Text style={styles.improvedOfferText}>Ksh.{actualTask.offer}</Text></Text>
+        <Text style={styles.textTitle}>Offer: <Text style={styles.improvedOfferText}>Ksh.{task.offer}</Text></Text>
         <View>
           <Button title="View Task" type="primary" small onPress={onNavigateToTaskDetails} />
         </View>
