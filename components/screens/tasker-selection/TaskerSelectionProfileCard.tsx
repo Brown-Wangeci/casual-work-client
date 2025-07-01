@@ -10,10 +10,15 @@ import { useTempUserStore } from '@/stores/tempUserStore'
 import { TaskApplication } from '@/constants/Types'
 import api from '@/lib/axios'
 import { extractErrorMessage, logError } from '@/lib/utils'
+import { useTasksStore } from '@/stores/tasksStore'
+import { useState } from 'react'
 
 const TaskerSelectionProfileCard = ( { application }: { application: TaskApplication } ) => {
 
-  const tasker = application.tasker;
+  const updateTask = useTasksStore((state) => state.updateTask);
+  const [ loading, setLoading ] = useState<boolean>(false);
+
+  const tasker = application.user;
   const router = useRouter();
   
   const onViewProfile = () => {
@@ -37,12 +42,15 @@ const TaskerSelectionProfileCard = ( { application }: { application: TaskApplica
       });
 
       if (!confirm) return;
+      setLoading(true);
 
-      const response = await api.post(`/applications/${application.id}/accept`);
+      const response = await api.patch(`/applications/${application.id}/accept`);
       
       if (response.status === 200 || response.status === 201) {
+
+        updateTask(response.data.data);
         Alert.alert('Success', response.data.message || 'Application accepted successfully.');
-        router.replace('/');
+        router.push('/');
       } else {
         Alert.alert('Error', 'Unexpected error. Please try again.');
       }
@@ -51,6 +59,8 @@ const TaskerSelectionProfileCard = ( { application }: { application: TaskApplica
       logError(error, 'TaskerSelectionProfileCard > onAcceptApplication');
       const message = extractErrorMessage(error);
       Alert.alert('Error', message || 'Failed to accept application. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -78,7 +88,7 @@ const TaskerSelectionProfileCard = ( { application }: { application: TaskApplica
           <Button title="View" type="secondary" onPress={ onViewProfile } />
         </View>
         <View style={styles.buttonWrapper}>
-          <Button title="Accept" type="primary" onPress={ onAcceptApplication } />
+          <Button title="Accept" type="primary" onPress={ onAcceptApplication } loading={loading} />
         </View>
       </View>
     </View>

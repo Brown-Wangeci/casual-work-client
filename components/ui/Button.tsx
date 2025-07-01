@@ -9,16 +9,17 @@ type ButtonProps = {
   type: 'primary' | 'secondary' | 'cancel'
   small?: boolean
   loading?: boolean
+  disabled?: boolean
 }
 
-const Button = ({ title, onPress, type, small, loading = false }: ButtonProps) => {
+const Button = ({ title, onPress, type, small, loading = false, disabled }: ButtonProps) => {
   const buttonStyle = small ? styles.smallButton : styles.button;
 
   return (
     <TouchableOpacity
       onPress={!loading ? onPress : undefined}
-      style={[buttonStyle, styles[type], loading && { opacity: 0.7 }]}
-      disabled={loading}
+      style={[buttonStyle, styles[type], loading && { opacity: 0.5 }, disabled && { opacity: 0.5 }]}
+      disabled={loading || disabled}
     >
       {loading ? (
         <ActivityIndicator size="small" color={colors.button[type].text} />

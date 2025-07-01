@@ -11,9 +11,9 @@ type ApplicationStatusProps = {
 const ApplicationStatus = ( {  status }: ApplicationStatusProps ) => {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-        <Ionicons name="ellipse" size={16} color={status === 'ACCEPTED' ? 'green' : status === 'REJECTED' ? 'red' : 'orange'} />
+        <Ionicons name="ellipse" size={16} color={status === 'ACCEPTED' ? 'green' : status === 'DENIED' ? 'red' : 'orange'} />
         <Text style={{ color: colors.text.light, fontSize: 12, fontWeight: 'bold' }}>
-          {status === 'ACCEPTED' ? 'Application Accepted' : status === 'REJECTED' ? 'Application Rejected' : 'Application Pending'}
+          {status === 'ACCEPTED' ? 'Application Accepted' : status === 'DENIED' ? 'Application Rejected' : 'Application Pending'}
         </Text>
     </View>
   )

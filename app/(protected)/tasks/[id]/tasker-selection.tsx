@@ -19,15 +19,16 @@ const TaskerSelectionScreen = () => {
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const { taskId } = useLocalSearchParams();
+  const { id } = useLocalSearchParams();
 
   const fetchApplications = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await api.get(`tasks/${taskId}/applications`);
-      setApplications(response.data);
+      const response = await api.get(`applications/${id}`);
+      console.log(response.data);
+      setApplications(response.data.taskApplications);
     } catch (error) {
       logError(error, 'TaskerSelectionScreen > fetchApplications');
       const message = extractErrorMessage(error);
@@ -51,10 +52,10 @@ const TaskerSelectionScreen = () => {
   };
 
   useEffect(() => {
-    if (taskId) {
+    if (id) {
       fetchApplications();
     }
-  }, [taskId]);
+  }, [id]);
 
   return (
     <ScreenBackground>

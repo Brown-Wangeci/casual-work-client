@@ -6,6 +6,8 @@ import colors from '@/constants/Colors'
 import { Ionicons } from '@expo/vector-icons'
 import { TaskApplication } from '@/constants/Types';
 import ApplicationStatus from '@/components/common/ApplicationStatus';
+import Button from '@/components/ui/Button';
+import { useRouter } from 'expo-router';
 
 
 type ApplicationTaskCardProps = {
@@ -14,7 +16,7 @@ type ApplicationTaskCardProps = {
 
 const ApplicationTaskCard = ({ taskApplication }: ApplicationTaskCardProps) => {
 
-
+  const router = useRouter();
   const task = taskApplication.task;
 
   // Truncate text to a specified word limit
@@ -48,11 +50,14 @@ const ApplicationTaskCard = ({ taskApplication }: ApplicationTaskCardProps) => {
           <Ionicons name="time-outline" size={16} color='#DAA520' />
           <Text style={styles.textTitle}>{timeSince}</Text>
         </View>
+        <ApplicationStatus status={taskApplication.status} />
       </View>
       <View style={styles.offerContainer}>
         <Text style={styles.textTitle}>Offer: <Text style={styles.improvedOfferText}>Ksh.{task.offer}</Text></Text>
         <View>
-          <ApplicationStatus status={taskApplication.status} />
+          { taskApplication.status === 'PENDING' &&
+            <Button title="View Task" type="primary" small onPress={ ()=>{ router.push(`/tasks/${task.id}/post-application`); }} />
+          }
         </View>
       </View>
     </View>

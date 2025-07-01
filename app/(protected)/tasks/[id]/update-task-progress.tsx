@@ -22,7 +22,7 @@ import { useTasksStore } from '@/stores/tasksStore'
 import Loading from '@/components/common/Loading'
 
 
-const TaskTrackingScreen = () => {
+const UpdateTaskProgressScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [ progress, setProgress ] = useState< number| null >(null);
   const [ loading, setLoading ] = useState< boolean >(true);
@@ -73,10 +73,10 @@ const TaskTrackingScreen = () => {
     }
   };
 
-  const onContactTasker = () => {
-    if (task?.taskerAssigned) {
-      useTempUserStore.getState().setUserProfile(task.taskerAssigned);
-      router.push(`/user/${task.taskerAssigned.id}`);
+  const onContactTaskPoster = () => {
+    if (task?.taskPoster) {
+      useTempUserStore.getState().setUserProfile(task.taskPoster);
+      router.push(`/user/${task.taskPoster.id}`);
     }
   };
 
@@ -94,13 +94,13 @@ const TaskTrackingScreen = () => {
 
 
 
-  const handleApproveTaskCompletion = async () => {}
+  const handleTaskCompletion = async () => {}
 
 
 
   return (
     <ScreenBackground>
-      <CustomHeader title='Task Tracking' showBackButton />
+      <CustomHeader title='Update Progress' showBackButton />
       <ScrollView
         contentContainerStyle={ styles.scrollContainer }
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -108,7 +108,7 @@ const TaskTrackingScreen = () => {
         <ContentWrapper>
           {
             loading ? (
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+               <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <Loading message='Loading task tracking' />
               </View>
             ) : error ? (
@@ -147,43 +147,36 @@ const TaskTrackingScreen = () => {
                 <TouchableOpacity onPress={toggleMapHeight}>
                   <FontAwesome6 name={mapHeight === hp('30%') ? 'expand': 'compress' } size={24} color={colors.text.bright} style={styles.resizeIcon} />
                 </TouchableOpacity>
-                <Text style={styles.subTitle}>Tasker</Text>
+                <Text style={styles.subTitle}>TaskPoster</Text>
                 
-                { task.taskerAssigned ? (
-                    <View style={styles.tasker}>
-                      <View style={styles.imageContainer}>
-                        <Image
-                          source={task.taskerAssigned?.profilePicture ? { uri: task.taskerAssigned.profilePicture } : require('@/assets/images/user.jpg')}
-                          style={styles.image}
-                        />
-                      </View>
-                      <View style={styles.taskerDetails}>
-                        <Text style={styles.name}>{ task.taskerAssigned?.username }</Text>
-                        <StarRating rating={task.taskerAssigned?.rating!} size={16} />
-                      </View>
-                      <View style={styles.buttonContainer}>
-                        <Button title="Contact" type='secondary' small onPress={onContactTasker} />
-                      </View>
-                    </View>
-                ): (
-                  <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>No tasker assigned yet.</Text>
-                )}
+                <View style={styles.tasker}>
+                  <View style={styles.imageContainer}>
+                    <Image
+                      source={task.taskPoster?.profilePicture ? { uri: task.taskPoster.profilePicture } : require('@/assets/images/user.jpg')}
+                      style={styles.image}
+                    />
+                  </View>
+                  <View style={styles.taskerDetails}>
+                    <Text style={styles.name}>{ task.taskPoster?.username }</Text>
+                    <StarRating rating={task.taskPoster?.rating!} size={16} />
+                  </View>
+                  <View style={styles.buttonContainer}>
+                    <Button title="Contact" type='secondary' small onPress={onContactTaskPoster} />
+                  </View>
+                </View>
+
                 
                 <View style={styles.ctaContainer}>
-                  {task.status === "IN_PROGRESS" && (
-                    <Button
-                      title="APPROVE TASK COMPLETION"
-                      type="primary"
-                      onPress={handleApproveTaskCompletion}
-                    />
-                  )}
-
-                  {(task.status !== "CANCELLED" && task.status !== "COMPLETED") && (
-                    <Button
-                      title="CANCEL TASK"
-                      type="cancel"
-                      onPress={() => {}}
-                    />
+                  { task.status === 'IN_PROGRESS' ? (
+                    <Button title="COMPLETE TASK" type="primary" small onPress={handleTaskCompletion} />
+                  ) : task.status === 'CANCELLED' ? (
+                    <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>Task has been cancelled.</Text>
+                  ) : task.status === 'COMPLETED' ? (
+                    <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>Task Poster has Approved Completion.</Text>
+                  ) : task.status === 'PENDING' ? (
+                    null
+                  ) : (
+                    <Button title="View Task" type="primary" small onPress={()=>{ router.push(`/tasks/${task.id}`) }} />
                   )}
                 </View>
               </>
@@ -197,7 +190,7 @@ const TaskTrackingScreen = () => {
   )
 }
 
-export default TaskTrackingScreen
+export default UpdateTaskProgressScreen
 
 
 const styles = StyleSheet.create({

@@ -59,12 +59,22 @@ const PostedTaskCard = ({ task }: PostedTaskCardProps) => {
           ) : task.status === 'CREATED' ? (
             <Button title="Confirm Task" type="primary" small onPress={()=>{ router.push(`/tasks/${task.id}/confirmation`) }} /> 
           ) : task.status === 'PENDING' ? (
-            <Button title="View Applications" type="primary" small onPress={()=>{ router.push(`/tasks/${task.id}/tasker-selection`) }} />
+            null
           ) : (
             <Button title="View Task" type="primary" small onPress={()=>{ router.push(`/tasks/${task.id}`) }} />
           )}
         </View>
       </View>
+      { task.status === 'PENDING' ? (
+        <View style={styles.ctaContainer}>
+          <View style={{ alignItems: 'center', justifyContent: 'center', width: '48%' }}>
+            <Button title="Track" type="secondary" small onPress={()=>{ router.push(`/tasks/${task.id}/track`) }} />
+          </View>
+          <View  style={{ alignItems: 'center', justifyContent: 'center', width: '48%' }}>
+            <Button title="Applications" type="primary" small onPress={()=>{ router.push(`/tasks/${task.id}/tasker-selection`) }} />
+          </View>
+        </View>
+      ) : null }
     </View>
   )
 }
@@ -126,5 +136,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     alignItems: 'center',
     gap: wp('2%'),
+  },
+  ctaContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
 })

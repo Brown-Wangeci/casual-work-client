@@ -55,7 +55,7 @@ const AssignedTaskCard = ({ task }: AssignedTaskCardProps) => {
         <Text style={styles.textTitle}>Offer: <Text style={styles.improvedOfferText}>Ksh.{task.offer}</Text></Text>
         <View>
           { task.status === 'IN_PROGRESS' ? (
-            <Button title="Manage Task" type="primary" small onPress={()=>{ router.push(`/tasks/${task.id}/update-progress`) }} />
+            <Button title="Manage Task" type="primary" small onPress={()=>{ router.push(`/tasks/${task.id}/update-task-progress`) }} />
           ) : (
             <Button title="View Task" type="primary" small onPress={()=>{ router.push(`/tasks/${task.id}`) }} />
           )}

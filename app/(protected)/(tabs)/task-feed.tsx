@@ -4,7 +4,6 @@ import CustomHeader from '@/components/layout/CustomHeader'
 import ContentWrapper from '@/components/layout/ContentWrapper'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
 import { moderateScale } from 'react-native-size-matters'
-import { Task } from '@/constants/Types'
 import TaskFeedCard from '@/components/screens/task-feed/TaskFeedCard'
 import ScreenBackground from '@/components/layout/ScreenBackground'
 import api from '@/lib/axios'
@@ -90,7 +89,6 @@ export default TaskFeedScreen
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    alignItems: 'center',
     paddingVertical: hp('3%'),
     alignSelf: 'center',
   },

@@ -29,7 +29,7 @@ type User = {
   updatedAt: Date; // ISO string
 };
 
-type TaskApplicationStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED';
+type TaskApplicationStatus = 'PENDING' | 'ACCEPTED' | 'DENIED';
 
 type TaskApplication = {
   id: string;
