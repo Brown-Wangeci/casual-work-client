@@ -9,6 +9,8 @@ import { useAuthStore } from '@/stores/authStore';
 import ScreenWrapper from '../components/layout/ScreenWrapper';
 import colors from '@/constants/Colors';
 import Loading from '@/components/common/Loading';
+import Toast from 'react-native-toast-message';
+import { toastConfig } from '@/lib/toastConfig';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -48,6 +50,9 @@ export default function RootLayout() {
         }}
       />
       <StatusBar bar-style="light" backgroundColor={colors.bg} translucent={false} />
+      <Toast
+        config={toastConfig}
+      />
     </ScreenWrapper>
   );
 }

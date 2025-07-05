@@ -19,12 +19,14 @@ import api from '@/lib/axios'
 import { useAuthStore } from '@/stores/authStore'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import { extractErrorMessage, logError } from '@/lib/utils'
 
 const ProfileScreen = () => {
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
   const [userInProfile, setUserInProfile] = useState({...user})
   const userUpdate = useAuthStore((state) => state.updateUser)
+  const [isEditing, setIsEditing] = useState(false)
 
   useEffect(() => {
     setUserInProfile({ ...user });
@@ -45,6 +47,8 @@ const ProfileScreen = () => {
       return;
     }
 
+    setIsEditing(true);
+
     // Save current user as backup in case we need to rollback
     const previousUser = { ...user };
 
@@ -52,44 +56,26 @@ const ProfileScreen = () => {
     userUpdate(userInProfile);
 
     try {
-      const response = await api.put('/users/me', userInProfile);
+      const response = await api.put('/user/me', userInProfile);
 
-      if (response.status === 200) {
+      if (response.status === 202) {
         userUpdate(response.data.user); // Confirm with fresh data from backend
-        Alert.alert('Success', 'Your profile has been updated successfully.');
+        const message = response.data.message || 'Profile updated successfully.'; 
+        Alert.alert('Success', message);
       } else {
         console.warn('Unexpected response:', response);
         userUpdate(previousUser); // Roll back
-        Alert.alert('Update Failed', 'Something went wrong. Please try again.');
+        Alert.alert('Update Failed', 'Something went wrong. Please try again later.'); 
       }
     } catch (error: any) {
-      console.error('Update error:', error);
 
       // Roll back to previous state
       userUpdate(previousUser);
-
-      let message = 'An unexpected error occurred. Please try again.';
-
-      if (error.response) {
-        const { status, data } = error.response;
-
-        switch (status) {
-          case 400:
-            message = data?.message || 'Invalid data provided.';
-            break;
-          case 401:
-            message = 'You are not authorized. Please log in again.';
-            router.push('/login');
-            return;
-          case 500:
-            message = 'Server error. Please try again later.';
-            break;
-          default:
-            message = data?.message || message;
-        }
-      }
-
+      logError(error, 'handleUpdateUser');
+      const message = extractErrorMessage(error) || 'An error occurred while updating your profile.';
       Alert.alert('Error', message);
+    } finally {
+      setIsEditing(false);
     }
   };
   // Function to handle user profile update with confirmation
@@ -97,7 +83,7 @@ const ProfileScreen = () => {
     confirmAction(
       'Are you sure you want to update your profile?',
       updateUser,
-      () => Alert.alert('Update Cancelled', 'Your profile was not updated.')
+      () => {}
     )
   }
 
@@ -107,7 +93,7 @@ const ProfileScreen = () => {
       async () => {
         await logout();
       },
-      () => Alert.alert('Logout Cancelled', 'You are still logged in.')
+      () => {}
     )
   }
 
@@ -144,11 +130,15 @@ const ProfileScreen = () => {
                 placeholder='Enter preferred username'
                 value={userInProfile.username}
                 onChangeText={(text) => setUserInProfile((prev) => ({ ...prev, username: text })) }
+                autoCapitalize="none"
               />
               <ThemedInput
                 placeholder='Enter your school email'
                 value={userInProfile.email}
                 onChangeText={ (text) => setUserInProfile((prev) => ({ ...prev, email: text })) }
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoComplete="email"
               />
               <ThemedInput
                 placeholder='e.g. 0712345678'
@@ -166,6 +156,7 @@ const ProfileScreen = () => {
                 type='primary'
                 small
                 onPress={ handleUpdateProfile }
+                loading={isEditing}
               />
             </View>
             <TaskerSwitch />

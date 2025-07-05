@@ -1,4 +1,4 @@
-type Status = 'CREATED' | 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+type Status = 'CREATED' | 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REVIEW' | 'CANCELLED';
 
 type Task = {
   id: string;
@@ -36,7 +36,7 @@ type TaskApplication = {
   appliedAt: Date;
   status: TaskApplicationStatus;
   task: Task;
-  tasker: User;
+  user: User;
 };
 
 type Review = {

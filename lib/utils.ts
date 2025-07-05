@@ -4,26 +4,34 @@ import axios from 'axios';
 
 const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
-export const calculateProgress = (status: Status ): number => {
-    switch (status) {
-        case 'PENDING':
-        return 0;
-        case 'IN_PROGRESS':
-        return 50;
-        case 'COMPLETED':
-        return 100;
-        case 'CANCELLED':
-        return 150;
-        default:
-        return 0;
-    }
-}
+export const calculateProgress = (status: Status): number => {
+  switch (status) {
+    case 'CREATED':
+      return 10;
+    case 'PENDING':
+      return 25;
+    case 'IN_PROGRESS':
+      return 50;
+    case 'REVIEW':
+      return 75;
+    case 'COMPLETED':
+      return 100;
+    case 'CANCELLED':
+      return 101; // visually distinct (over 100%)
+    default:
+      return 0;
+  }
+};
+
+
 
 export const formatStatus = (status: Status): string => {
     switch (status) {
         case 'PENDING':
             return 'Pending';
         case 'IN_PROGRESS':
+            return 'In Progress';
+        case 'REVIEW':
             return 'In Progress';
         case 'COMPLETED':
             return 'Completed';
@@ -72,7 +80,7 @@ export const validateToken = async (token: string) => {
       },
     });
     console.log('Token validation response:', response.status);
-    return response.status === 200;
+    return { isValid: response.status === 200, user: response.data.user };
   } catch {
     console.error('Token validation failed');
     return false;

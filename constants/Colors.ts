@@ -36,14 +36,20 @@ const colors = {
             stroke: '#FF0000',
         },
     },
-    progress:{
-        bg: 'rgba(70, 76, 85, 0.2)',
-        stroke: '#464C55',
-        success: '#4CAF50',
-        middle: '#FFC107',
-        start: '#4B0082',
-        cancelled: '#FF0000',
+    progress: {
+        bg: '#e0e0e0',
+        stroke: '#c0c0c0',
+        start: '#7ec8e3',        // CREATED
+        pending: '#00bfff',      // PENDING
+        inProgress: '#f39c12',   // IN_PROGRESS
+        review: '#9b59b6',       // REVIEW
+        success: '#27ae60',      // COMPLETED
+        cancelled: '#e74c3c',    // CANCELLED
+        rejected: '#e74c3c',     // DENIED
+        accepted: '#27ae60',     // ACCEPTED
+        neutral: '#f39c12',      // for waiting/undefined states
     },
+
     tag:{
         bg: '#E8F5E9',
         label: '#4CAF50',

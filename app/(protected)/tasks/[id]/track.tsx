@@ -92,8 +92,6 @@ const TaskTrackingScreen = () => {
   }, [id]);
 
 
-
-
   const handleApproveTaskCompletion = async () => {}
 
 

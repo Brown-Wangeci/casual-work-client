@@ -15,11 +15,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import api from '@/lib/axios';
 import { extractErrorMessage, formatPhoneNumber, logError } from '@/lib/utils';
 import { useTasksStore } from '@/stores/tasksStore';
+import { useAuthStore } from '@/stores/authStore';
 
 const TaskConfirmationScreen = () => {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const getPostedTaskById = useTasksStore((state) => state.getCreatedTaskById);
+  const refreshUser = useAuthStore((state => state.refreshUser));
   const task = id ? getPostedTaskById(id as string) : null;
 
   const [phone, setPhone] = useState<string>('');
@@ -41,15 +43,20 @@ const TaskConfirmationScreen = () => {
         phoneNumber: formattedPhone,
       });
 
-      if (response.status === 200 || response.status === 201) {
+      if (response.status === 202) {
         console.log('Task confirmation response:', response.data);
-        const { data } = response.data;
-        if (data) {
+        const { task } = response.data;
+        if (task) {
           // Update the task in the store
-          useTasksStore.getState().updateTask(data.task);
+          useTasksStore.getState().updateTask(task);
         }
+
         Alert.alert('Success', response.data.message || 'Payment prompt sent to your phone. Please input your pin to confirm payment.');
         router.push('/');
+        // Refresh user data to ensure latest info
+        await refreshUser();
+        console.log('User data refreshed after task confirmation.');
+
       } else {
         Alert.alert('Error', 'Unexpected error. Please try again.');
       }
@@ -63,6 +70,8 @@ const TaskConfirmationScreen = () => {
       setLoading(false);
     }
   };
+
+  const handleCancelTask = async () => {}
 
   if (!task) {
     return (
@@ -138,7 +147,10 @@ const TaskConfirmationScreen = () => {
                 keyboardType='phone-pad'
               />
             </View>
-            <Button title="CONFIRM TASK" type='primary' onPress={handleConfirmTask} loading={loading} />
+            <View style={styles.ctaContainer}>
+              <Button title="CONFIRM TASK" type='primary' onPress={handleConfirmTask} loading={loading} />
+              <Button title="CANCEL TASK" type='cancel' onPress={handleCancelTask} />
+            </View>
           </ContentWrapper>
         </KeyboardAwareScrollView>
       </TouchableWithoutFeedback>
@@ -242,5 +254,8 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(14, 0.2),
     borderLeftWidth: 1,
     borderLeftColor: colors.component.stroke,
+  },
+  ctaContainer: {
+    gap: hp('2%'),
   },
 });

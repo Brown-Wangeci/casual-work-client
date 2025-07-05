@@ -1,46 +1,47 @@
-import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { Image } from 'expo-image'
-import colors from '@/constants/Colors'
-import { moderateScale } from 'react-native-size-matters'
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
-import LiveMapView from '@/components/screens/task-track/LiveMapView'
-import StarRating from '@/components/common/StarRating'
-import Button from '@/components/ui/Button'
-import ContentWrapper from '@/components/layout/ContentWrapper'
-import Tag from '@/components/screens/task-track/Tag'
-import { FontAwesome6 } from '@expo/vector-icons'
-import CustomHeader from '@/components/layout/CustomHeader'
-import { Task } from '@/constants/Types'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import ScreenBackground from '@/components/layout/ScreenBackground'
-import Loading from '@/components/common/Loading'
-import { formatDistanceToNow } from 'date-fns'
-import { extractErrorMessage, logError } from '@/lib/utils'
-import { useTempUserStore } from '@/stores/tempUserStore'
-import { useTaskFeedStore } from '@/stores/taskFeedStore'
-import api from '@/lib/axios'
-import { useAuthStore } from '@/stores/authStore'
-import { useTasksStore } from '@/stores/tasksStore'
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Image } from 'expo-image';
+import colors from '@/constants/Colors';
+import { moderateScale } from 'react-native-size-matters';
+import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import LiveMapView from '@/components/screens/task-track/LiveMapView';
+import StarRating from '@/components/common/StarRating';
+import Button from '@/components/ui/Button';
+import ContentWrapper from '@/components/layout/ContentWrapper';
+import Tag from '@/components/screens/task-track/Tag';
+import { FontAwesome6 } from '@expo/vector-icons';
+import CustomHeader from '@/components/layout/CustomHeader';
+import { Task } from '@/constants/Types';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import ScreenBackground from '@/components/layout/ScreenBackground';
+import Loading from '@/components/common/Loading';
+import { formatDistanceToNow } from 'date-fns';
+import { extractErrorMessage, logError } from '@/lib/utils';
+import { useTempUserStore } from '@/stores/tempUserStore';
+import { useTaskFeedStore } from '@/stores/taskFeedStore';
+import api from '@/lib/axios';
+import { useAuthStore } from '@/stores/authStore';
+import { useTasksStore } from '@/stores/tasksStore';
+import { showToast } from '@/lib/showToast';
 
 const TaskApplicationScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [isApplying, setIsApplying] = useState(false);
-  const updateTask = useTaskFeedStore((state) => state.updateTask);
-  const addTaskApplication = useTasksStore((state) => state.addTaskApplication);
   const [error, setError] = useState<string | null>(null);
   const [task, setTask] = useState<Task | null>(null);
   const [address, setAddress] = useState('');
   const [mapHeight, setMapHeight] = useState(hp('30%'));
 
+  const updateTask = useTaskFeedStore((state) => state.updateTask);
+  const addTaskApplication = useTasksStore((state) => state.addTaskApplication);
+  const getTaskById = useTaskFeedStore((state) => state.getTaskById);
+
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const getTaskById = useTaskFeedStore((state) => state.getTaskById);
-  const fetchUserTasks = useTasksStore((state) => state.fetchUserTasks);
 
   const toggleMapHeight = () => {
-    setMapHeight(prevHeight => (prevHeight === hp('30%') ? hp('70%') : hp('30%')));
+    setMapHeight((prev) => (prev === hp('30%') ? hp('70%') : hp('30%')));
   };
 
   const fetchTaskDetails = async () => {
@@ -56,16 +57,12 @@ const TaskApplicationScreen = () => {
 
     try {
       const response = await api.get(`/tasks/${id}`);
-      if (!response.data || !response.data.task) {
-        throw new Error('Unexpected response format: task not found.');
-      }
-      const taskData = response.data.task;
-      setTask(taskData);
-    } catch (error: any) {
+      if (!response.data?.task) throw new Error('Task not found.');
+      setTask(response.data.task);
+    } catch (error) {
       logError(error, 'fetchTaskDetails');
-      const message = extractErrorMessage(error);
-      console.warn('Fetch task error:', message);
-      setError(message || 'Failed to load task details. Please try again later.');
+      setError(extractErrorMessage(error));
+      showToast('error', 'Failed to load task', extractErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -88,27 +85,26 @@ const TaskApplicationScreen = () => {
     fetchTaskDetails();
   }, [id]);
 
-
   const onApplyForTask = async () => {
     if (!task || !id) {
-      Alert.alert('Task information is missing. Please try again later.');
+      showToast('error', 'Task Info Missing', 'Please try again later.');
       return;
     }
 
     const user = useAuthStore.getState().user;
     if (!user) {
-      Alert.alert('You must be logged in to apply.');
+      showToast('error', 'Not Logged In', 'Please log in to apply for tasks.');
       return;
     }
 
     if (!user.isTasker) {
-      Alert.alert('You must be available as a tasker to apply for tasks.');
+      showToast('info', 'Not a Tasker', 'Switch to tasker mode to apply.');
       return;
     }
 
-    const alreadyApplied = task.taskersApplied?.some(u => u.id === user.id);
+    const alreadyApplied = task.taskersApplied?.some((u) => u.id === user.id);
     if (alreadyApplied) {
-      Alert.alert('You have already applied for this task.');
+      showToast('info', 'Already Applied', 'You already applied for this task.');
       return;
     }
 
@@ -116,30 +112,23 @@ const TaskApplicationScreen = () => {
 
     try {
       const response = await api.post(`/tasks/${id}/apply`);
-      console.log('Task application response:', response.data);
 
       if (response.status === 201 || response.data?.success) {
-        
-        const message = response.data?.message || 'You have successfully applied for the task';
-        console.log('Task application response:', response.data.data);
         updateTask(response.data.data.task);
         addTaskApplication(response.data.data);
-        Alert.alert(message);
+        showToast('success', 'Application Sent', 'You’ll be contacted if selected.');
         router.push(`/`);
-        fetchUserTasks(); // Refresh user tasks after applying
       } else {
-        const message = response.data?.message || 'Unexpected response from the server.';
-        Alert.alert(message);
+        const msg = response.data?.message || 'Unexpected server response.';
+        showToast('error', 'Application Failed', msg);
       }
     } catch (error) {
       logError(error, 'onApplyForTask');
-      const message = extractErrorMessage(error);
-      Alert.alert(message || 'Failed to apply for the task. Please try again.');
+      showToast('error', 'Failed to Apply', extractErrorMessage(error));
     } finally {
       setIsApplying(false);
     }
   };
-
 
   return (
     <ScreenBackground>
@@ -151,10 +140,10 @@ const TaskApplicationScreen = () => {
         <ContentWrapper>
           {loading ? (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-              <Loading message='Loading Taskfeed task' />
+              <Loading message='Loading task details...' />
             </View>
           ) : error ? (
-            <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.red }}>Error: {error}</Text>
+            <Text style={styles.errorText}>Error: {error}</Text>
           ) : task ? (
             <>
               <Text style={styles.title}>{task.title}</Text>
@@ -176,7 +165,9 @@ const TaskApplicationScreen = () => {
               </TouchableOpacity>
 
               <Text style={styles.subTitle}>Posted Time</Text>
-              <Text style={styles.description}>{formatDistanceToNow(new Date(task.updatedAt), { addSuffix: true })}</Text>
+              <Text style={styles.description}>
+                {formatDistanceToNow(new Date(task.updatedAt), { addSuffix: true })}
+              </Text>
 
               <Text style={styles.subTitle}>Task Poster</Text>
               <View style={styles.taskPoster}>
@@ -191,24 +182,24 @@ const TaskApplicationScreen = () => {
                   <StarRating rating={task.taskPoster?.rating!} size={16} />
                 </View>
                 <View style={styles.buttonContainer}>
-                  <Button title="Contact" type='secondary' small onPress={onContactTaskPoster} />
+                  <Button title="Contact" type="secondary" small onPress={onContactTaskPoster} />
                 </View>
               </View>
 
               <View style={styles.ctaContainer}>
-                <Button title='APPLY FOR TASK' type='primary' onPress={onApplyForTask} loading={isApplying} />
+                <Button title="APPLY FOR TASK" type="primary" onPress={onApplyForTask} loading={isApplying} />
               </View>
             </>
           ) : (
-            <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>No task details available.</Text>
+            <Text style={styles.description}>No task details available.</Text>
           )}
         </ContentWrapper>
       </ScrollView>
     </ScreenBackground>
-  )
-}
+  );
+};
 
-export default TaskApplicationScreen
+export default TaskApplicationScreen;
 
 const styles = StyleSheet.create({
   scrollContainer: {
@@ -245,6 +236,10 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(14, 0.2),
     fontFamily: 'poppins-regular',
   },
+  errorText: {
+    fontSize: moderateScale(16, 0.2),
+    color: colors.text.red,
+  },
   mapViewContainer: {
     width: '100%',
     backgroundColor: colors.component.bg,
@@ -267,7 +262,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     width: wp('16%'),
     height: wp('16%'),
-    borderRadius: '50%',
+    borderRadius: 100,
     borderStyle: 'solid',
     borderWidth: 2,
     borderColor: colors.component.stroke,
@@ -292,4 +287,4 @@ const styles = StyleSheet.create({
   ctaContainer: {
     marginTop: hp('4%'),
   },
-})
+});

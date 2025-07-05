@@ -44,6 +44,7 @@ const ViewTaskScreen = () => {
 
     const cachedTask = getTaskById(id as string);
     if (cachedTask) {
+      console.log('Using cached task data:', cachedTask);
       setTask(cachedTask);
       setLoading(false);
       return;

@@ -50,8 +50,8 @@ const ApplicationTaskCard = ({ taskApplication }: ApplicationTaskCardProps) => {
           <Ionicons name="time-outline" size={16} color='#DAA520' />
           <Text style={styles.textTitle}>{timeSince}</Text>
         </View>
-        <ApplicationStatus status={taskApplication.status} />
       </View>
+      <ApplicationStatus status={taskApplication.status} />
       <View style={styles.offerContainer}>
         <Text style={styles.textTitle}>Offer: <Text style={styles.improvedOfferText}>Ksh.{task.offer}</Text></Text>
         <View>

@@ -5,6 +5,7 @@ import { moderateScale } from 'react-native-size-matters'
 import api from '@/lib/axios'
 import { useAuthStore } from '@/stores/authStore'
 import { useState } from 'react'
+import { extractErrorMessage, logError } from '@/lib/utils'
 
 const TaskerSwitch = () => {
   const user = useAuthStore((state) => state.user)
@@ -24,22 +25,25 @@ const TaskerSwitch = () => {
     setIsUpdating(true)
 
     try {
-      const response = await api.patch(`/users/${user.id}`, {
-        isTasker: newStatus,
-      })
+      const response = await api.patch(`user/toggle`)
 
       if (response.status === 200) {
         // API success, no further action needed
-        Alert.alert('Success', `You are now ${newStatus ? 'available' : 'unavailable'} as a Tasker.`)
+        const availableStatus = response.data.user.isTasker
+        updateUser({ isTasker: availableStatus })
+        const message = response.data.message || `You are now ${availableStatus ? 'available' : 'not available'} as a Tasker.`
+        Alert.alert('Success', message); 
+        // Alert.alert('Success'
       } else {
         // Revert optimistic update
         updateUser({ isTasker: isEnabled })
         Alert.alert('Error', 'Could not update tasker status. Please try again.')
       }
-    } catch (error) {
-      console.error('Error updating tasker status:', error)
+    } catch (error: any) {
       updateUser({ isTasker: isEnabled }) // Revert back
-      Alert.alert('Error', 'Failed to update tasker status. Please try again later.')
+      logError(error, 'handleToggleAvailability');
+      const message = extractErrorMessage(error)
+      Alert.alert('Error', message || 'An error occurred while updating your availability as a Tasker.')
     } finally {
       setIsUpdating(false)
     }

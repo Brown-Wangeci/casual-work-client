@@ -20,6 +20,7 @@ interface AuthState {
   logout: () => Promise<void>;
   loadToken: () => Promise<void>;
   updateUser: (partialUser: Partial<User>) => void;
+  refreshUser: () => Promise<void>;
   clearState: () => void;
 }
 
@@ -97,6 +98,28 @@ export const useAuthStore = create<AuthState>()(
           return;
         }
         set({ user: { ...currentUser, ...partialUser } });
+      },
+
+      refreshUser: async () => {
+        const token = get().token;
+        if (!token) {
+          console.warn('No token available to refresh user.');
+          return;
+        }
+
+        try {
+          const response = await axios.get(`${process.env.EXPO_PUBLIC_API_URL}/user/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          set({ user: response.data.user });
+          console.info('User refreshed successfully:', response.data.message || 'User data updated');
+        } catch (error) {
+          logError(error, 'refreshUser');
+          const message = extractErrorMessage(error);
+          console.warn('Failed to refresh user:', message);
+        }
       },
 
       clearState: () => {

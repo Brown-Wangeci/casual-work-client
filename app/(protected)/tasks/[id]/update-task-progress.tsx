@@ -1,4 +1,4 @@
-import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Image } from 'expo-image'
 import colors from '@/constants/Colors'
@@ -26,10 +26,11 @@ const UpdateTaskProgressScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [ progress, setProgress ] = useState< number| null >(null);
   const [ loading, setLoading ] = useState< boolean >(true);
+  const [ isCompleting, setIsCompleting ] =  useState< boolean >(false);
   const [ error, setError ] = useState< string | null >(null);
   const [ task, setTask ] = useState< Task | null >(null);
   const [ address, setAddress ] = useState('');
-  const getTaskById = useTasksStore((state) => state.getCreatedTaskById);
+  const getTaskById = useTasksStore((state) => state.getAssignedTaskById);
 
   const [mapHeight, setMapHeight] = useState(hp('30%'));
 
@@ -49,6 +50,7 @@ const UpdateTaskProgressScreen = () => {
 
     const cachedTask = getTaskById(id as string);
     if (cachedTask) {
+      console.log('Using cached task:', cachedTask);
       setTask(cachedTask);
       setProgress(calculateProgress(cachedTask.status));
       setLoading(false);
@@ -60,7 +62,13 @@ const UpdateTaskProgressScreen = () => {
       if (!response.data || !response.data.task) {
         throw new Error('Unexpected response format: task not found.');
       }
+
       const taskData = response.data.task;
+
+      // update Zustand store with this fetched task
+      useTasksStore.getState().updateTask(taskData);
+      console.log('Fetched task details:', taskData);
+
       setTask(taskData);
       setProgress(calculateProgress(taskData.status));
     } catch (error: any) {
@@ -94,7 +102,32 @@ const UpdateTaskProgressScreen = () => {
 
 
 
-  const handleTaskCompletion = async () => {}
+  const handleTaskCompletion = async () => {
+    try {
+      setIsCompleting(true);
+      const response = await api.patch(`/tasks/${id}/complete`);
+
+      if (response.status === 200 || response.status === 201) {
+        const { data } = response.data;
+        if (data) {
+          // Always update the store to reflect the most recent status
+          useTasksStore.getState().updateTask(data);
+          setTask(data);
+          setProgress(calculateProgress(data.status));
+        }
+        Alert.alert('Success', response.data.message || "Marked as completed.");
+        router.push('/');
+      } else {
+        Alert.alert('Error', 'Unexpected error. Please try again.');
+      }
+    } catch (error: any) {
+      logError(error, 'handleTaskCompletion');
+      Alert.alert('Error', extractErrorMessage(error));
+    } finally {
+      setIsCompleting(false);
+    }
+  };
+
 
 
 
@@ -168,9 +201,11 @@ const UpdateTaskProgressScreen = () => {
                 
                 <View style={styles.ctaContainer}>
                   { task.status === 'IN_PROGRESS' ? (
-                    <Button title="COMPLETE TASK" type="primary" small onPress={handleTaskCompletion} />
+                    <Button title="COMPLETE TASK" type="primary" small onPress={handleTaskCompletion} loading={isCompleting} />
                   ) : task.status === 'CANCELLED' ? (
                     <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>Task has been cancelled.</Text>
+                  ) : task.status === 'REVIEW' ? (
+                    <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>Task has marked as completed, awaiting Task Poster approval .</Text>
                   ) : task.status === 'COMPLETED' ? (
                     <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>Task Poster has Approved Completion.</Text>
                   ) : task.status === 'PENDING' ? (

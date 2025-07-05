@@ -56,7 +56,6 @@ const TaskFeedCard = ({ task }: TaskFeedCardProps) => {
           <Text style={styles.textTitle}>{timeSince}</Text>
         </View>
       </View>
-      <TaskStatus status={task.status} />
       <View style={styles.offerContainer}>
         <Text style={styles.textTitle}>Offer: <Text style={styles.improvedOfferText}>Ksh.{task.offer}</Text></Text>
         <View>

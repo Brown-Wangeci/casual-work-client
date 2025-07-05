@@ -14,6 +14,8 @@ interface TasksState {
   addCreatedTask: (newTask: Task) => void;
   addTaskApplication: (newApplication: TaskApplication) => void;
   getCreatedTaskById: (id: string) => Task | undefined;
+  getAssignedTaskById: (id: string) => Task | undefined;
+  getTaskById: (id: string) => Task | undefined;
   clearTasks: () => void;
   clearApplications: () => void;
 }
@@ -83,6 +85,19 @@ export const useTasksStore = create<TasksState>((set) => ({
 
   getCreatedTaskById: (id: string): Task | undefined => {
     return useTasksStore.getState().posted.find((task: Task) => task.id === id);
+  },
+
+  getAssignedTaskById: (id: string): Task | undefined => {
+    return useTasksStore.getState().assigned.find((task: Task) => task.id === id);
+  },
+
+  getTaskById: (id: string): Task | undefined => {
+    const task = useTasksStore.getState().getAssignedTaskById(id) || useTasksStore.getState().getCreatedTaskById(id);
+    if (!task) {
+      console.warn(`Task with ID ${id} not found in either posted or assigned tasks.`);
+      return undefined;
+    }
+    return task;
   },
 
   clearTasks: () =>

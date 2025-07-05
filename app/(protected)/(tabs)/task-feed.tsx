@@ -11,6 +11,7 @@ import { extractErrorMessage, logError } from '@/lib/utils'
 import Loading from '@/components/common/Loading'
 import { View } from 'react-native'
 import { useTaskFeedStore } from '@/stores/taskFeedStore'
+import colors from '@/constants/Colors'
 
 const TaskFeedScreen = () => {
 
@@ -65,7 +66,7 @@ const TaskFeedScreen = () => {
               <Loading message='Loading task feed' />
             </View>
             ) : error ? (
-            <Text style={{ fontSize: moderateScale(16), color: '#f00' }}>Error: {error}</Text>
+            <Text style={{ fontSize: moderateScale(16), color: colors.text.light }}>Error: {error}</Text>
             ) : tasks && tasks.length > 0 ? (
               <FlatList
                 data={tasks}

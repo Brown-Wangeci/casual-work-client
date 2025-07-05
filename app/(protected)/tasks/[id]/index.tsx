@@ -16,8 +16,8 @@ import Loading from '@/components/common/Loading'
 import { formatDistanceToNow } from 'date-fns'
 import { extractErrorMessage, logError } from '@/lib/utils'
 import { useTempUserStore } from '@/stores/tempUserStore'
-import { useTaskFeedStore } from '@/stores/taskFeedStore'
 import api from '@/lib/axios'
+import { useTasksStore } from '@/stores/tasksStore'
 
 const TaskDetailsScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
@@ -28,7 +28,7 @@ const TaskDetailsScreen = () => {
 
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const getTaskById = useTaskFeedStore((state) => state.getTaskById);
+  const getTaskById = useTasksStore((state) => state.getTaskById);
 
 
   const fetchTaskDetails = async () => {
@@ -47,17 +47,22 @@ const TaskDetailsScreen = () => {
       if (!response.data || !response.data.task) {
         throw new Error('Unexpected response format: task not found.');
       }
-      const taskData = response.data.task;
+
+      const taskData: Task = response.data.task;
+
+      // Update the Zustand store (both posted and assigned arrays just in case)
+      useTasksStore.getState().updateTask(taskData);
+
       setTask(taskData);
     } catch (error: any) {
       logError(error, 'fetchTaskDetails');
       const message = extractErrorMessage(error);
-      console.warn('Fetch task error:', message);
       setError(message || 'Failed to load task details. Please try again later.');
     } finally {
       setLoading(false);
     }
   };
+
 
   const onRefresh = () => {
     setRefreshing(true);
