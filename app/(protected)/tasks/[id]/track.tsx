@@ -13,46 +13,44 @@ import Tag from '@/components/screens/task-track/Tag'
 import { FontAwesome6 } from '@expo/vector-icons'
 import CustomHeader from '@/components/layout/CustomHeader'
 import { calculateProgress, extractErrorMessage, formatStatus, logError } from '@/lib/utils'
-import { Task, User } from '@/constants/Types'
+import { Task } from '@/constants/Types'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import ScreenBackground from '@/components/layout/ScreenBackground'
-import api from '@/lib/axios'
+import api from '@/lib/utils/axios'
 import { useTempUserStore } from '@/stores/tempUserStore'
 import { useTasksStore } from '@/stores/tasksStore'
 import Loading from '@/components/common/Loading'
-
+import { showToast } from '@/lib/utils/showToast'
 
 const TaskTrackingScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
-  const [ progress, setProgress ] = useState< number| null >(null);
-  const [ loading, setLoading ] = useState< boolean >(true);
-  const [ error, setError ] = useState< string | null >(null);
-  const [ task, setTask ] = useState< Task | null >(null);
-  const [ address, setAddress ] = useState('');
+  const [progress, setProgress] = useState<number | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isApproving, setIsApproving] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [task, setTask] = useState<Task | null>(null);
+  const [address, setAddress] = useState('');
   const getTaskById = useTasksStore((state) => state.getCreatedTaskById);
-
+  const cancelTask = useTasksStore((state) => state.cancelTask);
+  const isCancelling = useTasksStore((state) => state.isCancelling);
   const [mapHeight, setMapHeight] = useState(hp('30%'));
-
-
   const router = useRouter();
-
+  const { id } = useLocalSearchParams();
 
   const toggleMapHeight = () => {
     setMapHeight(prevHeight => (prevHeight === hp('30%') ? hp('70%') : hp('30%')));
   };
 
-  const { id } = useLocalSearchParams();
-
-  const fetchTaskDetails = async () => {
-    setLoading(true);
+  const fetchTaskDetails = async (force = false) => {
     setError(null);
-
-    const cachedTask = getTaskById(id as string);
-    if (cachedTask) {
-      setTask(cachedTask);
-      setProgress(calculateProgress(cachedTask.status));
-      setLoading(false);
-      return;
+    if (!force) {
+      const cachedTask = getTaskById(id as string);
+      if (cachedTask) {
+        setTask(cachedTask);
+        setProgress(calculateProgress(cachedTask.status));
+        setLoading(false);
+        return;
+      }
     }
 
     try {
@@ -61,13 +59,12 @@ const TaskTrackingScreen = () => {
         throw new Error('Unexpected response format: task not found.');
       }
       const taskData = response.data.task;
+      useTasksStore.getState().updateTask(taskData);
       setTask(taskData);
       setProgress(calculateProgress(taskData.status));
     } catch (error: any) {
       logError(error, 'fetchTaskDetails');
-      const message = extractErrorMessage(error);
-      console.warn('Fetch task error:', message);
-      setError(message || 'Failed to load task details. Please try again later.');
+      setError(extractErrorMessage(error) || 'Failed to load task details.');
     } finally {
       setLoading(false);
     }
@@ -80,115 +77,141 @@ const TaskTrackingScreen = () => {
     }
   };
 
-  
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    fetchTaskDetails();
+    await fetchTaskDetails(true);
     setRefreshing(false);
   };
-  
+
   useEffect(() => {
     fetchTaskDetails();
   }, [id]);
 
+  const handleApproveTaskCompletion = async () => {
+    if (!task?.id) {
+      showToast('error', 'Missing Task ID', 'Cannot approve without a valid task ID.');
+      return;
+    }
 
-  const handleApproveTaskCompletion = async () => {}
+    try {
+      setIsApproving(true);
+      const response = await api.patch(`/tasks/${task.id}/approve`);
 
+      if (response.status === 202 && response.data?.approvedTask) {
+        const updatedTask = response.data.approvedTask;
+        useTasksStore.getState().updateTask(updatedTask);
+        setTask(updatedTask);
+        setProgress(calculateProgress(updatedTask.status));
+        showToast('success', 'Task Approved', response.data.message || 'Task marked as complete.');
+        router.push(`/tasks/${updatedTask.id}/rate`);
+      } else {
+        showToast('error', 'Approval Failed', 'Unexpected server response. Please try again.');
+      }
+    } catch (error) {
+      logError(error, 'handleApproveTaskCompletion');
+      showToast('error', 'Approval Error', extractErrorMessage(error));
+    } finally {
+      setIsApproving(false);
+    }
+  };
 
+  const handleCancelTask = () => {
+    if (!task?.id) {
+      showToast('error', 'Task ID not found', 'Unable to cancel task without ID.');
+      return;
+    }
+    cancelTask(task.id);
+  };
 
   return (
     <ScreenBackground>
       <CustomHeader title='Task Tracking' showBackButton />
       <ScrollView
-        contentContainerStyle={ styles.scrollContainer }
+        contentContainerStyle={styles.scrollContainer}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         <ContentWrapper>
-          {
-            loading ? (
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <Loading message='Loading task tracking' />
+          {loading ? (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <Loading message='Loading task tracking' />
+            </View>
+          ) : error ? (
+            <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.red }}>Error: {error}</Text>
+          ) : task ? (
+            <>
+              <Text style={styles.title}>{task.title}</Text>
+              <View style={styles.categoryAndOfferContainer}>
+                {task?.category && <Tag label={task.category} />}
+                <Text style={styles.finalOffer}>Ksh. {task.offer}</Text>
               </View>
-            ) : error ? (
-              <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.red }}>Error: {error}</Text>
-            ) : task ? (
-              <>
-                <Text style={styles.title}>{task.title}</Text>
-                <View style={styles.categoryAndOfferContainer}>
-                  { task?.category && <Tag label={task.category} />}
-                  <Text style={styles.finalOffer}>Ksh. {task.offer}</Text>
-                </View>
-                
-                <Text style={styles.subTitle}>Description</Text>
-                <Text style={styles.description}>{task.description}</Text>
-                
-                <Text style={styles.subTitle}>Progress</Text>
-                { progress !== null ? 
-                  (
-                  <>
-                    <View style={styles.progressBarContainer}>
-                    <ProgressBar percentage={progress} />
-                    </View>
-                    <Text style={styles.status}>Status: <Text style={styles.statusState}>{ formatStatus(task.status) }</Text></Text>
-                  </>
-                  ):
-                  (
-                    <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>No progress data available.</Text>
-                  )
-                }
-                
-                <Text style={styles.subTitle}>Location</Text>
-                <Text style={styles.description}>{address}</Text>
-                <View style={[styles.mapViewContainer, { height: mapHeight }]}>
-                  <LiveMapView setAddress={setAddress} address={address} />
-                </View>
-                <TouchableOpacity onPress={toggleMapHeight}>
-                  <FontAwesome6 name={mapHeight === hp('30%') ? 'expand': 'compress' } size={24} color={colors.text.bright} style={styles.resizeIcon} />
-                </TouchableOpacity>
-                <Text style={styles.subTitle}>Tasker</Text>
-                
-                { task.taskerAssigned ? (
-                    <View style={styles.tasker}>
-                      <View style={styles.imageContainer}>
-                        <Image
-                          source={task.taskerAssigned?.profilePicture ? { uri: task.taskerAssigned.profilePicture } : require('@/assets/images/user.jpg')}
-                          style={styles.image}
-                        />
-                      </View>
-                      <View style={styles.taskerDetails}>
-                        <Text style={styles.name}>{ task.taskerAssigned?.username }</Text>
-                        <StarRating rating={task.taskerAssigned?.rating!} size={16} />
-                      </View>
-                      <View style={styles.buttonContainer}>
-                        <Button title="Contact" type='secondary' small onPress={onContactTasker} />
-                      </View>
-                    </View>
-                ): (
-                  <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>No tasker assigned yet.</Text>
-                )}
-                
-                <View style={styles.ctaContainer}>
-                  {task.status === "IN_PROGRESS" && (
-                    <Button
-                      title="APPROVE TASK COMPLETION"
-                      type="primary"
-                      onPress={handleApproveTaskCompletion}
-                    />
-                  )}
 
-                  {(task.status !== "CANCELLED" && task.status !== "COMPLETED") && (
-                    <Button
-                      title="CANCEL TASK"
-                      type="cancel"
-                      onPress={() => {}}
+              <Text style={styles.subTitle}>Description</Text>
+              <Text style={styles.description}>{task.description}</Text>
+
+              <Text style={styles.subTitle}>Progress</Text>
+              {progress !== null ? (
+                <>
+                  <View style={styles.progressBarContainer}>
+                    <ProgressBar percentage={progress} />
+                  </View>
+                  <Text style={styles.status}>Status: <Text style={styles.statusState}>{formatStatus(task.status)}</Text></Text>
+                </>
+              ) : (
+                <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>No progress data available.</Text>
+              )}
+
+              <Text style={styles.subTitle}>Location</Text>
+              <Text style={styles.description}>{address}</Text>
+              <View style={[styles.mapViewContainer, { height: mapHeight }]}>
+                <LiveMapView setAddress={setAddress} address={address} />
+              </View>
+              <TouchableOpacity onPress={toggleMapHeight}>
+                <FontAwesome6 name={mapHeight === hp('30%') ? 'expand' : 'compress'} size={24} color={colors.text.bright} style={styles.resizeIcon} />
+              </TouchableOpacity>
+
+              <Text style={styles.subTitle}>Tasker</Text>
+              {task.taskerAssigned ? (
+                <View style={styles.tasker}>
+                  <View style={styles.imageContainer}>
+                    <Image
+                      source={task.taskerAssigned?.profilePicture ? { uri: task.taskerAssigned.profilePicture } : require('@/assets/images/user.jpg')}
+                      style={styles.image}
                     />
-                  )}
+                  </View>
+                  <View style={styles.taskerDetails}>
+                    <Text style={styles.name}>{task.taskerAssigned?.username}</Text>
+                    <StarRating rating={task.taskerAssigned?.rating!} size={16} />
+                  </View>
+                  <View style={styles.buttonContainer}>
+                    <Button title="Contact" type='secondary' small onPress={onContactTasker} />
+                  </View>
                 </View>
-              </>
-            ) : (
-              <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>No task details available.</Text>
-            )
-          }
+              ) : (
+                <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>No tasker assigned yet.</Text>
+              )}
+
+              <View style={styles.ctaContainer}>
+                {(task.status === "IN_PROGRESS" || task.status === "REVIEW") && (
+                  <Button
+                    title="APPROVE TASK COMPLETION"
+                    type="primary"
+                    onPress={handleApproveTaskCompletion}
+                    loading={isApproving}
+                  />
+                )}
+                {(task.status !== "CANCELLED" && task.status !== "COMPLETED") && (
+                  <Button
+                    title="CANCEL TASK"
+                    type="cancel"
+                    onPress={handleCancelTask}
+                    loading={isCancelling}
+                  />
+                )}
+              </View>
+            </>
+          ) : (
+            <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>No task details available.</Text>
+          )}
         </ContentWrapper>
       </ScrollView>
     </ScreenBackground>
@@ -196,7 +219,6 @@ const TaskTrackingScreen = () => {
 }
 
 export default TaskTrackingScreen
-
 
 const styles = StyleSheet.create({
   scrollContainer: {
@@ -260,7 +282,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginTop: hp('1%'),
   },
-
   tasker: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -270,7 +291,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     width: wp('16%'),
     height: wp('16%'),
-    borderRadius: '50%',
+    borderRadius: wp('8%'),
     borderStyle: 'solid',
     borderWidth: 2,
     borderColor: colors.component.stroke,
@@ -296,4 +317,4 @@ const styles = StyleSheet.create({
     gap: hp('2%'),
     marginTop: hp('4%'),
   },
-})
+});

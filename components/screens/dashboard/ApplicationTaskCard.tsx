@@ -1,70 +1,82 @@
-import {  StyleSheet, Text, View } from 'react-native'
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen'
-import { moderateScale } from 'react-native-size-matters'
+import { StyleSheet, Text, View } from 'react-native';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { moderateScale } from 'react-native-size-matters';
 import { formatDistanceToNow } from 'date-fns';
-import colors from '@/constants/Colors'
-import { Ionicons } from '@expo/vector-icons'
+import colors from '@/constants/Colors';
+import { Ionicons } from '@expo/vector-icons';
 import { TaskApplication } from '@/constants/Types';
 import ApplicationStatus from '@/components/common/ApplicationStatus';
 import Button from '@/components/ui/Button';
 import { useRouter } from 'expo-router';
-
+import { showToast } from '@/lib/utils/showToast';
+import { logError } from '@/lib/utils';
 
 type ApplicationTaskCardProps = {
-  taskApplication: TaskApplication 
-}
+  taskApplication: TaskApplication;
+};
 
 const ApplicationTaskCard = ({ taskApplication }: ApplicationTaskCardProps) => {
-
   const router = useRouter();
-  const task = taskApplication.task;
+  const task = taskApplication?.task;
 
-  // Truncate text to a specified word limit
-  const truncateText = (text: string, wordLimit: number) => {
-    if (!text) return '';
-    const words = text.split(" ");
-    if (words.length > wordLimit) {
-      return words.slice(0, wordLimit).join(" ") + "...";
-    }
-    return text;
+  if (!task) return null;
+
+  const truncateText = (text: string, wordLimit: number): string => {
+    return text?.split(" ").slice(0, wordLimit).join(" ") + (text?.split(" ").length > wordLimit ? "..." : "");
   };
 
-  let timeSince;
-  if (task.createdAt) {
-    timeSince = formatDistanceToNow(new Date(task.createdAt), { addSuffix: true });
-  } else {
-    timeSince = "";
-  }
+  const timeSince = task.createdAt
+    ? formatDistanceToNow(new Date(task.createdAt), { addSuffix: true })
+    : "";
 
+  const handleViewTask = () => {
+    try {
+      if (!task.id) throw new Error('Task ID is missing');
+      router.push(`/tasks/${task.id}/apply`);
+    } catch (error) {
+      logError(error, 'ApplicationTaskCard > handleViewTask');
+      showToast('error', 'Unable to open task', 'Please try again.');
+    }
+  };
+
+  const isAccepted = taskApplication.status === 'ACCEPTED';
 
   return (
-    <View style={styles.card}>
+    <View
+      style={StyleSheet.flatten([
+        styles.card,
+        isAccepted && styles.acceptedCard
+      ])}
+    >
       <Text style={styles.title}>{truncateText(task.title, 5)}</Text>
       <Text style={styles.textTitle}>{truncateText(task.description, 15)}</Text>
+
       <View style={styles.locationAndDateOuterContainer}>
         <View style={styles.locationAndDateContainer}>
-          <Ionicons name="location-sharp" size={16} color='#FD42C8' />
+          <Ionicons name="location-sharp" size={16} color="#FD42C8" />
           <Text style={styles.textTitle}>{task.location}</Text>
         </View>
         <View style={styles.locationAndDateContainer}>
-          <Ionicons name="time-outline" size={16} color='#DAA520' />
+          <Ionicons name="time-outline" size={16} color="#DAA520" />
           <Text style={styles.textTitle}>{timeSince}</Text>
         </View>
       </View>
+
       <ApplicationStatus status={taskApplication.status} />
+
       <View style={styles.offerContainer}>
-        <Text style={styles.textTitle}>Offer: <Text style={styles.improvedOfferText}>Ksh.{task.offer}</Text></Text>
+        <Text style={styles.textTitle}>
+          Offer: <Text style={styles.improvedOfferText}>Ksh. {task.offer}</Text>
+        </Text>
         <View>
-          { taskApplication.status === 'PENDING' &&
-            <Button title="View Task" type="primary" small onPress={ ()=>{ router.push(`/tasks/${task.id}/post-application`); }} />
-          }
+          <Button title="View Task" type="primary" small onPress={handleViewTask} />
         </View>
       </View>
     </View>
-  )
-}
+  );
+};
 
-export default ApplicationTaskCard
+export default ApplicationTaskCard;
 
 const styles = StyleSheet.create({
   card: {
@@ -76,6 +88,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: wp('4%'),
   },
+  acceptedCard: {
+    borderColor: colors.text.green,
+    backgroundColor: 'rgba(0, 255, 0, 0.03)',
+  },
   title: {
     color: colors.text.bright,
     fontSize: moderateScale(16, 0.2),
@@ -86,22 +102,12 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(12, 0.2),
     fontFamily: 'poppins-regular',
   },
-  improvedText: {
-    color: colors.text.bright,
-    fontSize: moderateScale(14, 0.2),
-    fontFamily: 'poppins-medium',
-  },
   offerContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: hp('0.5%'),
-  },
-  offer: {
-    color: colors.text.bright,
-    fontSize: moderateScale(14, 0.2),
-    fontFamily: 'poppins-bold',
   },
   improvedOfferText: {
     color: colors.text.green,
@@ -122,4 +128,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: wp('2%'),
   },
-})
+});

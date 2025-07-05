@@ -61,6 +61,7 @@ const colors = {
         green: '#4CAF50',
         red: '#FF0000',
         placeholder: '#A0A0A0',
+        infoText: '#B0BEC5',
     },
     star: {
         filled: '#DAA520',

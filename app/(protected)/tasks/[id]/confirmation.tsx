@@ -1,4 +1,4 @@
-import { Alert, Keyboard, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View } from 'react-native';
+import { Keyboard, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import ContentWrapper from '@/components/layout/ContentWrapper';
 import CustomHeader from '@/components/layout/CustomHeader';
@@ -12,20 +12,25 @@ import { moderateScale } from 'react-native-size-matters';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ScreenBackground from '@/components/layout/ScreenBackground';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import api from '@/lib/axios';
-import { extractErrorMessage, formatPhoneNumber, logError } from '@/lib/utils';
+import api from '@/lib/utils/axios';
+import { extractErrorMessage, logError } from '@/lib/utils';
 import { useTasksStore } from '@/stores/tasksStore';
 import { useAuthStore } from '@/stores/authStore';
+import { showToast } from '@/lib/utils/showToast';
+import { safeFormatPhoneNumber } from '@/lib/utils/formatPhone';
 
 const TaskConfirmationScreen = () => {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const cancelTask = useTasksStore((state) => state.cancelTask);
+  const isCancelling = useTasksStore((state) => state.isCancelling);
   const getPostedTaskById = useTasksStore((state) => state.getCreatedTaskById);
+  const updateTask = useTasksStore((state) => state.updateTask);
   const refreshUser = useAuthStore((state => state.refreshUser));
   const task = id ? getPostedTaskById(id as string) : null;
 
   const [phone, setPhone] = useState<string>('');
-  const [ loading, setLoading ] = useState < boolean > (false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (task?.taskPoster?.phone) {
@@ -35,7 +40,12 @@ const TaskConfirmationScreen = () => {
 
   const handleConfirmTask = async () => {
     try {
-      const formattedPhone = formatPhoneNumber(phone);
+      const formattedPhone = safeFormatPhoneNumber(phone);
+
+      if (!formattedPhone) {
+        showToast('error', 'Invalid phone number');
+        return;
+      }
 
       setLoading(true);
 
@@ -43,35 +53,32 @@ const TaskConfirmationScreen = () => {
         phoneNumber: formattedPhone,
       });
 
-      if (response.status === 202) {
-        console.log('Task confirmation response:', response.data);
-        const { task } = response.data;
-        if (task) {
-          // Update the task in the store
-          useTasksStore.getState().updateTask(task);
-        }
-
-        Alert.alert('Success', response.data.message || 'Payment prompt sent to your phone. Please input your pin to confirm payment.');
+      if (response.status === 202 && response.data?.task) {
+        updateTask(response.data.task);
+        showToast('success', 'Payment Prompt Sent', response.data.message);
         router.push('/');
-        // Refresh user data to ensure latest info
         await refreshUser();
-        console.log('User data refreshed after task confirmation.');
-
       } else {
-        Alert.alert('Error', 'Unexpected error. Please try again.');
+        showToast('error', 'Unexpected Error', 'Please try again.');
       }
     } catch (error: any) {
       logError(error, 'handleConfirmTask');
       const message = error.message?.includes('Invalid phone number')
         ? error.message
         : extractErrorMessage(error);
-      Alert.alert('Error', message);
+      showToast('error', 'Confirmation Failed', message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCancelTask = async () => {}
+  const handleCancelTask = () => {
+      if (!id) {
+        showToast('error', 'Task ID not found', 'Unable to cancel task without ID.');
+        return;
+      }
+      cancelTask(id as string)
+    };
 
   if (!task) {
     return (
@@ -149,7 +156,7 @@ const TaskConfirmationScreen = () => {
             </View>
             <View style={styles.ctaContainer}>
               <Button title="CONFIRM TASK" type='primary' onPress={handleConfirmTask} loading={loading} />
-              <Button title="CANCEL TASK" type='cancel' onPress={handleCancelTask} />
+              <Button title="CANCEL TASK" type='cancel' onPress={handleCancelTask} loading={isCancelling} />
             </View>
           </ContentWrapper>
         </KeyboardAwareScrollView>
@@ -166,9 +173,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: hp('1%'),
     paddingBottom: hp('4%'),
-  },
-  content: {
-    width: wp('90%'),
   },
   title: {
     color: colors.text.light,

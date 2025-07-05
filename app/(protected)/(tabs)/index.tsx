@@ -35,9 +35,14 @@ const DashboardScreen = () => {
 
   const [selectedTab, setSelectedTab] = useState<'Posted' | 'Assigned' | 'Applications'>('Posted');
   const [refreshing, setRefreshing] = useState(false);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
 
   useEffect(() => {
-    fetchUserTasks();
+    const fetchData = async () => {
+      await fetchUserTasks();
+      setInitialLoadDone(true);
+    };
+    fetchData();
   }, []);
 
   const onRefresh = async () => {
@@ -110,9 +115,9 @@ const DashboardScreen = () => {
           </View>
 
           <View style={styles.recentActivityContainer}>
-            {loading ? (
+            {!initialLoadDone || (loading && !refreshing) ? (
               <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: moderateScale(20, 0.2) }}>
-                <Loading message='Loading user tasks' />
+                <Loading message="Loading user tasks" />
               </View>
             ) : error ? (
               <Text style={styles.errorText}>{error}</Text>

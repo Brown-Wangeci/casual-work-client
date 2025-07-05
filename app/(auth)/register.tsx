@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Platform , TouchableOpacity, TouchableWithoutFeedback, Keyboard, Alert } from 'react-native';
+import { StyleSheet, Text, View, Platform, TouchableOpacity, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { moderateScale } from 'react-native-size-matters';
 import { FontAwesome6 } from '@expo/vector-icons';
@@ -10,21 +10,17 @@ import colors from '@/constants/Colors';
 import ContentWrapper from '@/components/layout/ContentWrapper';
 import ScreenBackground from '@/components/layout/ScreenBackground';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import api from '@/lib/axios';
+import api from '@/lib/utils/axios';
 import { useAuthStore } from '@/stores/authStore';
 import InfoText from '@/components/common/InfoText';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import * as  Google from 'expo-auth-session/providers/google';
+import * as Google from 'expo-auth-session/providers/google';
 import { extractErrorMessage, logError } from '@/lib/utils';
+import { showToast } from '@/lib/utils/showToast';
+import { safeFormatPhoneNumber } from '@/lib/utils/formatPhone';
 
 WebBrowser.maybeCompleteAuthSession();
-
-const discovery = {
-  authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
-  tokenEndpoint: 'https://oauth2.googleapis.com/token',
-  userInfoEndpoint: 'https://www.googleapis.com/oauth2/v3/userinfo',
-};
 
 const SignUp = () => {
   const regexEmail = /^[a-zA-Z0-9._%+-]+@([a-zA-Z0-9.-]+\.)?strathmore\.edu$/;
@@ -32,7 +28,7 @@ const SignUp = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const [ signUpData, setSignUpData ] = useState < SignUpData >({
+  const [signUpData, setSignUpData] = useState<SignUpData>({
     username: '',
     email: '',
     phone: '',
@@ -41,64 +37,60 @@ const SignUp = () => {
     profilePicture: '',
   });
 
-  const [request, response, promptAsync] = Google.useAuthRequest(
-    {
-      androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!,
-      webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID!,
-    },
-  );
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!,
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID!,
+  });
 
   const handleSignUp = async () => {
-    if (
-      !signUpData.username ||
-      !signUpData.email ||
-      !signUpData.phone ||
-      !signUpData.password ||
-      !signUpData.confirmPassword
-    ) {
-      Alert.alert('Missing fields', 'Please fill out all fields.');
+    const formattedPhone = safeFormatPhoneNumber(signUpData.phone);
+
+    if (!signUpData.username || !signUpData.email || !signUpData.password || !signUpData.confirmPassword || !signUpData.phone) {
+      showToast('error', 'Missing Fields', 'Please fill in all required fields.');
+      return;
+    }
+
+    if (!formattedPhone) {
+      showToast('error', 'Invalid Phone Number', 'Please enter a valid phone number.');
       return;
     }
 
     if (!regexEmail.test(signUpData.email)) {
-      Alert.alert('Invalid Email', 'Please use a valid Strathmore email address.');
+      showToast('error', 'Invalid Email', 'Use your Strathmore email.');
       return;
     }
 
     if (signUpData.password !== signUpData.confirmPassword) {
-      Alert.alert('Password Mismatch', 'Your passwords do not match. Please try again.');
+      showToast('error', 'Password Mismatch', 'Passwords do not match.');
       return;
     }
 
     try {
       setLoading(true);
 
-      const response = await api.post('/auth/signup', {
-        username: signUpData.username,
-        email: signUpData.email,
-        phone: signUpData.phone,
-        password: signUpData.password,
+      const res = await api.post('/auth/signup', {
+        ...signUpData,
+        phone: formattedPhone,
         profilePicture: `https://api.dicebear.com/7.x/lorelei/svg?seed=${signUpData.username}`,
       });
 
-      if (response.status === 201 && response.data?.result?.user && response.data?.result?.token) {
-        const { user, token } = response.data.result;
+      if (res.status === 201 && res.data?.result?.user && res.data?.result?.token) {
+        const { user, token } = res.data.result;
         useAuthStore.getState().login(user, token);
-        // Alert.alert('Success', 'Account created successfully!');
+        router.replace('/');
+        showToast('success', res.data.message || 'Sign up successful');
       } else {
-        logError(response, 'Unexpected signup response');
-        Alert.alert('Signup Error', 'Unexpected error. Please try again.');
+        logError(res, 'Unexpected signup response');
+        showToast('error', 'Signup Error', 'Please try again.');
       }
-
     } catch (error) {
       logError(error, 'handleSignUp');
-      const message = extractErrorMessage(error);
-      Alert.alert('Signup Failed', message);
+      const msg = extractErrorMessage(error) || 'An error occurred during signup';
+      showToast('error', 'Signup Failed', msg);
     } finally {
       setLoading(false);
     }
   };
-
 
   const onSignUpWithGoogle = async () => {
     try {
@@ -106,7 +98,7 @@ const SignUp = () => {
       const result = await promptAsync();
 
       if (result.type !== 'success' || !result.authentication?.accessToken) {
-        Alert.alert('Google Sign Up', 'Authentication failed or was cancelled.');
+        showToast('error', 'Google Sign Up Failed', 'Authentication was cancelled or failed.');
         return;
       }
 
@@ -117,7 +109,7 @@ const SignUp = () => {
       const userInfo = await userInfoResponse.json();
 
       if (!userInfo.email.endsWith('@strathmore.edu')) {
-        Alert.alert('Invalid Email', 'Only Strathmore email accounts are allowed for sign up.');
+        showToast('error', 'Invalid Email', 'Only Strathmore emails are allowed.');
         return;
       }
 
@@ -128,23 +120,21 @@ const SignUp = () => {
       });
 
       if (response.status === 201 && response.data?.user && response.data?.token) {
-        const { user, token, message } = response.data;
+        const { user, token } = response.data;
         useAuthStore.getState().login(user, token);
-        // Alert.alert('Welcome', message || `Signed up as ${user.username}`);
+        router.replace('/');
       } else {
         logError(response, 'Unexpected Google signup response');
-        Alert.alert('Signup Error', 'Unexpected error. Please try again.');
+        showToast('error', 'Signup Error', 'Please try again.');
       }
-
     } catch (error) {
       logError(error, 'onSignUpWithGoogle');
       const message = extractErrorMessage(error);
-      Alert.alert('Google Sign Up Failed', message);
+      showToast('error', 'Google Sign Up Failed', message);
     } finally {
       setLoading(false);
     }
   };
-
 
   return (
     <ScreenBackground>
@@ -171,7 +161,7 @@ const SignUp = () => {
 
             <Button title="CREATE ACCOUNT" type='primary' onPress={handleSignUp} loading={loading} />
             <Text style={styles.optionText}>Or Sign Up with</Text>
-            <TouchableOpacity style={styles.googleIconContainer} onPress={onSignUpWithGoogle} disabled={loading}>
+            <TouchableOpacity style={[styles.googleIconContainer, loading && { opacity: 0.5 }]} onPress={onSignUpWithGoogle} disabled={loading}>
               <FontAwesome6 name="google" size={36} color={colors.text.bright} />
             </TouchableOpacity>
           </ContentWrapper>

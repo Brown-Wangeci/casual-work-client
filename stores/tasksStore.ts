@@ -1,21 +1,28 @@
 import { create } from 'zustand';
-import api from '@/lib/axios';
+import api from '@/lib/utils/axios';
 import { Task, TaskApplication } from '@/constants/Types';
+import { showToast } from '@/lib/utils/showToast';
+import { extractErrorMessage, logError } from '@/lib/utils';
 
 interface TasksState {
   posted: Task[];
   assigned: Task[];
   applications: TaskApplication[];
   loading: boolean;
+  isCancelling: boolean;
   error: string | null;
   fetchUserTasks: () => Promise<void>;
   updateTask: (updatedTask: Task) => void;
   updateTaskApplication: (updatedApplication: TaskApplication) => void;
   addCreatedTask: (newTask: Task) => void;
   addTaskApplication: (newApplication: TaskApplication) => void;
+  getApplicationByTaskId: (taskId: string) => TaskApplication | undefined;
+  hasUserApplied: (taskId: string, userId: string) => boolean;
+  getApplicationStatus: (taskId: string, userId: string) => 'accepted' | 'denied' | 'pending' | null;
   getCreatedTaskById: (id: string) => Task | undefined;
   getAssignedTaskById: (id: string) => Task | undefined;
   getTaskById: (id: string) => Task | undefined;
+  cancelTask: (taskId: string, onSuccess?: () => void) => Promise<void>;
   clearTasks: () => void;
   clearApplications: () => void;
 }
@@ -24,6 +31,7 @@ export const useTasksStore = create<TasksState>((set) => ({
   posted: [],
   assigned: [],
   applications: [],
+  isCancelling: false,
   loading: false,
   error: null,
 
@@ -83,6 +91,31 @@ export const useTasksStore = create<TasksState>((set) => ({
       ),
     })),
 
+  getApplicationByTaskId: (taskId: string): TaskApplication | undefined => {
+    return useTasksStore.getState().applications.find(
+      (application) => application.task?.id === taskId
+    );
+  },
+
+  hasUserApplied: (taskId: string, userId: string): boolean => {
+    return !!useTasksStore.getState().applications.find(
+      (application) =>
+        application.task?.id === taskId && application.user?.id === userId
+    );
+  },
+
+  getApplicationStatus: (taskId: string, userId: string): 'accepted' | 'denied' | 'pending' | null => {
+    const app = useTasksStore.getState().applications.find(
+      (application) =>
+        application.task?.id === taskId && application.user?.id === userId
+    );
+    if (!app) return null;
+    if (app.status === 'ACCEPTED') return 'accepted';
+    if (app.status === 'DENIED') return 'denied';
+    return 'pending';
+  },
+
+
   getCreatedTaskById: (id: string): Task | undefined => {
     return useTasksStore.getState().posted.find((task: Task) => task.id === id);
   },
@@ -98,6 +131,29 @@ export const useTasksStore = create<TasksState>((set) => ({
       return undefined;
     }
     return task;
+  },
+
+  cancelTask: async (taskId: string, onSuccess?: () => void) => {
+    set({ isCancelling: true});
+    try {
+      const response = await api.patch(`/tasks/${taskId}/cancel`);
+      if (response.status === 200 || response.data?.success) {
+        // Update the store
+        useTasksStore.getState().updateTask(response.data.task);
+        showToast('success', 'Task Cancelled', response.data.message || 'Task has been successfully cancelled.');
+        if (onSuccess) {
+          onSuccess();
+        }
+      } else {
+        showToast('error', 'Failed to Cancel Task', response.data.message || 'Unexpected server response.');
+      }
+    } catch (error: any) {
+      logError(error, 'cancelTask');
+      const message = extractErrorMessage(error);
+      showToast('error', 'Failed to Cancel Task', message);
+    } finally {
+      set({ isCancelling: false });
+    }
   },
 
   clearTasks: () =>

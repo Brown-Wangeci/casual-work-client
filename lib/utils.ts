@@ -32,7 +32,7 @@ export const formatStatus = (status: Status): string => {
         case 'IN_PROGRESS':
             return 'In Progress';
         case 'REVIEW':
-            return 'In Progress';
+            return 'Under Review';
         case 'COMPLETED':
             return 'Completed';
         case 'CANCELLED':
@@ -121,22 +121,3 @@ export function logError(error: unknown, context?: string) {
   }
 }
 
-
-export const formatPhoneNumber = (phoneNumber: string): string => {
-  const cleaned = phoneNumber.replace(/\D/g, '');
-
-  let formatted = '';
-  if (cleaned.startsWith('07') && cleaned.length === 10) {
-    formatted = '254' + cleaned.slice(1);
-  } else if (cleaned.startsWith('01') && cleaned.length === 10) {
-    formatted = '254' + cleaned.slice(1);
-  } else if ((cleaned.startsWith('7') || cleaned.startsWith('1')) && cleaned.length === 9) {
-    formatted = '254' + cleaned;
-  } else if (cleaned.startsWith('254') && cleaned.length === 12) {
-    formatted = cleaned;
-  } else {
-    throw new Error('Invalid phone number format');
-  }
-
-  return formatted;
-};

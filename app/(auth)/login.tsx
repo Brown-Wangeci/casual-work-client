@@ -1,130 +1,104 @@
-import { StyleSheet, Text, View, Platform, TouchableOpacity, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { StyleSheet, Text, View, Platform, TouchableOpacity, TouchableWithoutFeedback, Keyboard, TurboModuleRegistry } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { moderateScale } from 'react-native-size-matters';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { useState } from 'react';
 import Button from '@/components/ui/Button';
-import { LoginData } from '@/constants/Types';
 import ThemedInput from '@/components/ui/ThemedInput';
 import colors from '@/constants/Colors';
 import ContentWrapper from '@/components/layout/ContentWrapper';
 import ScreenBackground from '@/components/layout/ScreenBackground';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import api from '@/lib/axios';
+import api from '@/lib/utils/axios';
 import { useAuthStore } from '@/stores/authStore';
 import InfoText from '@/components/common/InfoText';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import * as  Google from 'expo-auth-session/providers/google';
+import * as Google from 'expo-auth-session/providers/google';
 import { extractErrorMessage, logError } from '@/lib/utils';
+import { showToast } from '@/lib/utils/showToast';
 
 WebBrowser.maybeCompleteAuthSession();
 
-const discovery = {
-  authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
-  tokenEndpoint: 'https://oauth2.googleapis.com/token',
-  userInfoEndpoint: 'https://www.googleapis.com/oauth2/v3/userinfo',
-};
-
 const Login = () => {
-  const [loginData, setLoginData] = useState<LoginData>({
-    email: '',
-    password: '',
-  });
-
+  const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
-
   const router = useRouter();
 
-  const [request, response, promptAsync] = Google.useAuthRequest(
-    {
-      androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!,
-      webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID!,
-    },
-  );
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!,
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID!,
+  });
 
   const onLogin = async () => {
     if (!loginData.email || !loginData.password) {
-      Alert.alert('Missing fields', 'Please fill out all fields.');
+      showToast('info', 'Please fill out all fields');
       return;
     }
 
-    setLoading(true);
-
     try {
-      const response = await api.post('/auth/login', loginData);
+      setLoading(true);
+      const res = await api.post('/auth/login', loginData);
 
-      if (
-        response.status === 200 &&
-        response.data &&
-        response.data.user &&
-        response.data.token
-      ) {
-        const { user, token, message } = response.data;
-        useAuthStore.getState().login(user, token);
-        // Alert.alert('Success', message || 'Logged in successfully!');
+      if (res.status === 200 && res.data?.user && res.data?.token) {
+        useAuthStore.getState().login(res.data.user, res.data.token);
+        showToast('success', res.data.message || `Log in successful`);
+        router.replace('/');
       } else {
-        logError(response, 'Unexpected response structure in onLogin');
-        Alert.alert('Error', 'Unexpected error. Please try again.');
+        logError(res, 'Unexpected login response');
+        showToast('error', 'Unexpected error. Please try again.');
       }
     } catch (error) {
       logError(error, 'onLogin');
-      const message = extractErrorMessage(error);
-      Alert.alert('Error', message);
+      const msg = extractErrorMessage(error) || 'An error occurred during login';
+      showToast('error', 'Login Failed', msg);
     } finally {
       setLoading(false);
     }
   };
 
   const onLoginWithGoogle = async () => {
-    setLoading(true);
     try {
+      setLoading(true);
       const result = await promptAsync();
 
       if (result.type !== 'success' || !result.authentication?.accessToken) {
-        Alert.alert('Google Login', 'Authentication was cancelled or failed.');
+        showToast('info', 'Google login cancelled or failed');
         return;
       }
 
-      const userInfoRes = await fetch(discovery.userInfoEndpoint, {
+      const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { Authorization: `Bearer ${result.authentication.accessToken}` },
       });
 
       const userInfo = await userInfoRes.json();
 
       if (!userInfo.email.endsWith('@strathmore.edu')) {
-        Alert.alert('Invalid Email', 'Only Strathmore emails are allowed.');
+        showToast('error', 'Only Strathmore emails are allowed');
         return;
       }
 
-      const response = await api.post('/auth/google-login', {
+      const res = await api.post('/auth/google-login', {
         email: userInfo.email,
         username: userInfo.name,
         profilePicture: userInfo.picture,
       });
 
-      if (
-        response.status === 200 &&
-        response.data &&
-        response.data.user &&
-        response.data.token
-      ) {
-        const { user, token, message } = response.data;
-        useAuthStore.getState().login(user, token);
-        Alert.alert('Success', message || `Logged in as ${user.username}`);
+      if (res.status === 200 && res.data?.user && res.data?.token) {
+        useAuthStore.getState().login(res.data.user, res.data.token);
+        showToast('success', res.data.message || `Logged in as ${res.data.user.username}`);
+        router.replace('/');
       } else {
-        logError(response, 'Unexpected response structure in onLoginWithGoogle');
-        Alert.alert('Login Error', 'Unexpected error.');
+        logError(res, 'Unexpected response from google-login');
+        showToast('error', 'Unexpected login error');
       }
     } catch (error) {
       logError(error, 'onLoginWithGoogle');
-      const message = extractErrorMessage(error);
-      Alert.alert('Login Failed', message);
+      showToast('error', 'Google login failed', extractErrorMessage(error));
     } finally {
       setLoading(false);
     }
   };
-
 
   return (
     <ScreenBackground>
@@ -137,7 +111,7 @@ const Login = () => {
         >
           <ContentWrapper style={{ alignItems: 'center', justifyContent: 'center' }}>
             <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subTitle}>Log in to Proceed</Text>
+            <Text style={styles.subTitle}>Log in to proceed</Text>
 
             <View style={styles.inputContainer}>
               <ThemedInput

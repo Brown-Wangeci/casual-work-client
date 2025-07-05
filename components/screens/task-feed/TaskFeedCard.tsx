@@ -7,7 +7,6 @@ import colors from '@/constants/Colors'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { Task } from '@/constants/Types';
-import TaskStatus from '@/components/common/TaskStatus';
 
 
 type TaskFeedCardProps = {
@@ -18,9 +17,9 @@ const TaskFeedCard = ({ task }: TaskFeedCardProps) => {
 
   const router = useRouter();
 
-
   // Navigation to task details page
   const onNavigateToTaskDetails = () => {
+    if (!task?.id) return;
     router.push(`/tasks/${task.id}/apply`);
   }
 
@@ -34,13 +33,9 @@ const TaskFeedCard = ({ task }: TaskFeedCardProps) => {
     return text;
   };
 
-  let timeSince;
-  if (task.updatedAt) {
-    timeSince = formatDistanceToNow(new Date(task.updatedAt), { addSuffix: true });
-  } else {
-    timeSince = "";
-  }
-
+  const timeSince = task.updatedAt
+    ? formatDistanceToNow(new Date(task.updatedAt), { addSuffix: true })
+    : "";
 
   return (
     <View style={styles.card}>

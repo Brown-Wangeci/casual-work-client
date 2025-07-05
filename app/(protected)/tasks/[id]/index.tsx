@@ -1,45 +1,49 @@
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { Image } from 'expo-image'
-import colors from '@/constants/Colors'
-import { moderateScale } from 'react-native-size-matters'
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
-import StarRating from '@/components/common/StarRating'
-import Button from '@/components/ui/Button'
-import ContentWrapper from '@/components/layout/ContentWrapper'
-import Tag from '@/components/screens/task-track/Tag'
-import CustomHeader from '@/components/layout/CustomHeader'
-import { Task } from '@/constants/Types'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import ScreenBackground from '@/components/layout/ScreenBackground'
-import Loading from '@/components/common/Loading'
-import { formatDistanceToNow } from 'date-fns'
-import { extractErrorMessage, logError } from '@/lib/utils'
-import { useTempUserStore } from '@/stores/tempUserStore'
-import api from '@/lib/axios'
-import { useTasksStore } from '@/stores/tasksStore'
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Image } from 'expo-image';
+import colors from '@/constants/Colors';
+import { moderateScale } from 'react-native-size-matters';
+import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import StarRating from '@/components/common/StarRating';
+import Button from '@/components/ui/Button';
+import ContentWrapper from '@/components/layout/ContentWrapper';
+import Tag from '@/components/screens/task-track/Tag';
+import CustomHeader from '@/components/layout/CustomHeader';
+import { Task, User } from '@/constants/Types';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import ScreenBackground from '@/components/layout/ScreenBackground';
+import Loading from '@/components/common/Loading';
+import { formatDistanceToNow } from 'date-fns';
+import { calculateProgress, extractErrorMessage, formatStatus, logError } from '@/lib/utils';
+import { useTempUserStore } from '@/stores/tempUserStore';
+import api from '@/lib/utils/axios';
+import { useTasksStore } from '@/stores/tasksStore';
+import ProgressBar from '@/components/ui/ProgressBar';
+import { AxiosError } from 'axios';
 
 const TaskDetailsScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [task, setTask] = useState<Task | null>(null);
-  const [address, setAddress] = useState('');
+  const [progress, setProgress] = useState<number | null>(null);
 
   const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const getTaskById = useTasksStore((state) => state.getTaskById);
 
-
-  const fetchTaskDetails = async () => {
-    setLoading(true);
+  const fetchTaskDetails = async (force = false) => {
+    if (!force) setLoading(true);
     setError(null);
 
-    const cachedTask = getTaskById(id as string);
-    if (cachedTask) {
-      setTask(cachedTask);
-      setLoading(false);
-      return;
+    if (!force) {
+      const cachedTask = getTaskById(id);
+      if (cachedTask) {
+        setTask(cachedTask);
+        setProgress(calculateProgress(cachedTask.status));
+        setLoading(false);
+        return;
+      }
     }
 
     try {
@@ -47,65 +51,48 @@ const TaskDetailsScreen = () => {
       if (!response.data || !response.data.task) {
         throw new Error('Unexpected response format: task not found.');
       }
-
       const taskData: Task = response.data.task;
-
-      // Update the Zustand store (both posted and assigned arrays just in case)
       useTasksStore.getState().updateTask(taskData);
-
       setTask(taskData);
-    } catch (error: any) {
+      setProgress(calculateProgress(taskData.status));
+    } catch (error: unknown) {
       logError(error, 'fetchTaskDetails');
-      const message = extractErrorMessage(error);
+      const message = extractErrorMessage(error as AxiosError);
       setError(message || 'Failed to load task details. Please try again later.');
     } finally {
       setLoading(false);
     }
   };
 
-
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    fetchTaskDetails();
+    await fetchTaskDetails(true);
     setRefreshing(false);
   };
 
-  const onContactTaskPoster = () => {
-    if (task?.taskPoster) {
-      useTempUserStore.getState().setUserProfile(task.taskPoster);
-      router.push(`/user/${task.taskPoster.id}`);
-    }
-  };
-
-  const onContactTasker = () => {
-    if (task?.taskerAssigned) {
-      useTempUserStore.getState().setUserProfile(task.taskerAssigned);
-      router.push(`/user/${task.taskerAssigned.id}`);
-    }
+  const onContactUser = (user: User) => {
+    useTempUserStore.getState().setUserProfile(user);
+    router.push(`/user/${user.id}`);
   };
 
   useEffect(() => {
     fetchTaskDetails();
   }, [id]);
 
-
-  
-
-
   return (
     <ScreenBackground>
-      <CustomHeader title='Task Details' showBackButton />
+      <CustomHeader title="Task Details" showBackButton />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         <ContentWrapper>
-          {loading ? (
+          {loading && !refreshing ? (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-              <Loading message='Loading Task Details' />
+              <Loading message="Loading Task Details..." />
             </View>
           ) : error ? (
-            <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.red }}>Error: {error}</Text>
+            <Text style={styles.errorText}>Error: {error}</Text>
           ) : task ? (
             <>
               <Text style={styles.title}>{task.title}</Text>
@@ -117,61 +104,69 @@ const TaskDetailsScreen = () => {
               <Text style={styles.subTitle}>Description</Text>
               <Text style={styles.description}>{task.description}</Text>
 
-              <Text style={styles.subTitle}>Location</Text>
-              <Text style={styles.description}>{address}</Text>
+              <Text style={styles.subTitle}>Status</Text>
+              <Text style={styles.statusText}>{formatStatus(task.status)}</Text>
 
-              <Text style={styles.subTitle}>Posted Time</Text>
-              <Text style={styles.description}>{formatDistanceToNow(new Date(task.updatedAt), { addSuffix: true })}</Text>
+              {progress !== null && (
+                <>
+                  <Text style={styles.subTitle}>Progress</Text>
+                  <ProgressBar percentage={progress} />
+                </>
+              )}
+
+              <Text style={styles.subTitle}>Location</Text>
+              <Text style={styles.description}>{task.location || 'Not specified'}</Text>
+
+              <Text style={styles.subTitle}>Posted</Text>
+              <Text style={styles.description}>{formatDistanceToNow(new Date(task.createdAt), { addSuffix: true })}</Text>
 
               <Text style={styles.subTitle}>Task Poster</Text>
-              <View style={styles.taskPoster}>
-                <View style={styles.imageContainer}>
-                  <Image
-                    source={task.taskPoster?.profilePicture ? { uri: task.taskPoster.profilePicture } : require('@/assets/images/user.jpg')}
-                    style={styles.image}
-                  />
-                </View>
-                <View style={styles.taskPosterDetails}>
-                  <Text style={styles.name}>{task.taskPoster?.username}</Text>
-                  <StarRating rating={task.taskPoster?.rating!} size={16} />
-                </View>
-                <View style={styles.buttonContainer}>
-                  <Button title="Contact" type='secondary' small onPress={onContactTaskPoster} />
-                </View>
-              </View>
+              <UserCard user={task.taskPoster} onContact={onContactUser} />
 
               <Text style={styles.subTitle}>Tasker Assigned</Text>
               {task.taskerAssigned ? (
-                <View style={styles.taskPoster}>
-                  <View style={styles.imageContainer}>
-                    <Image
-                      source={task.taskerAssigned?.profilePicture ? { uri: task.taskerAssigned.profilePicture } : require('@/assets/images/user.jpg')}
-                      style={styles.image}
-                    />
-                  </View>
-                  <View style={styles.taskPosterDetails}>
-                    <Text style={styles.name}>{task.taskerAssigned?.username}</Text>
-                    <StarRating rating={task.taskerAssigned?.rating!} size={16} />
-                  </View>
-                  <View style={styles.buttonContainer}>
-                    <Button title="Contact" type='secondary' small onPress={onContactTasker} />
-                  </View>
-                </View>
+                <UserCard user={task.taskerAssigned} onContact={onContactUser} />
               ) : (
-                <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>No tasker assigned.</Text>
+                <Text style={styles.description}>No tasker assigned.</Text>
               )}
-
             </>
           ) : (
-            <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>No task details available.</Text>
+            <Text style={styles.description}>No task details available.</Text>
           )}
         </ContentWrapper>
       </ScrollView>
     </ScreenBackground>
-  )
+  );
+};
+
+interface UserCardProps {
+  user: User;
+  onContact: (user: User) => void;
 }
 
-export default TaskDetailsScreen
+const UserCard: React.FC<UserCardProps> = ({ user, onContact }) => {
+  if (!user) return null;
+
+  return (
+    <View style={styles.userCard}>
+      <View style={styles.imageContainer}>
+        <Image
+          source={user.profilePicture ? { uri: user.profilePicture } : require('@/assets/images/user.jpg')}
+          style={styles.image}
+        />
+      </View>
+      <View style={styles.userDetails}>
+        <Text style={styles.name}>{user.username}</Text>
+        <StarRating rating={user.rating} size={16} />
+      </View>
+      <View style={styles.buttonContainer}>
+        <Button title="Contact" type="secondary" small onPress={() => onContact(user)} />
+      </View>
+    </View>
+  );
+};
+
+export default TaskDetailsScreen;
 
 const styles = StyleSheet.create({
   scrollContainer: {
@@ -190,6 +185,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
+    marginBottom: hp('2%'),
   },
   finalOffer: {
     fontSize: moderateScale(18, 0.2),
@@ -208,30 +204,24 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(14, 0.2),
     fontFamily: 'poppins-regular',
   },
-  mapViewContainer: {
-    width: '100%',
-    backgroundColor: colors.component.bg,
-    borderStyle: 'solid',
-    borderWidth: 2,
-    borderColor: colors.component.stroke,
-    borderRadius: 12,
-    overflow: 'hidden',
+  statusText: {
+    fontSize: moderateScale(14, 0.2),
+    fontFamily: 'poppins-medium',
+    color: colors.text.light,
   },
-  resizeIcon: {
-    alignSelf: 'center',
-    marginTop: hp('1%'),
+  errorText: {
+    fontSize: moderateScale(16, 0.2),
+    color: colors.text.red,
   },
-  taskPoster: {
+  userCard: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     alignItems: 'center',
-    paddingVertical: wp('2%'),
+    paddingVertical: hp('1.5%'),
   },
   imageContainer: {
     width: wp('16%'),
     height: wp('16%'),
-    borderRadius: '50%',
-    borderStyle: 'solid',
+    borderRadius: wp('8%'),
     borderWidth: 2,
     borderColor: colors.component.stroke,
     overflow: 'hidden',
@@ -240,7 +230,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  taskPosterDetails: {
+  userDetails: {
     marginLeft: wp('4%'),
   },
   name: {
@@ -249,10 +239,6 @@ const styles = StyleSheet.create({
     fontFamily: 'poppins-bold',
   },
   buttonContainer: {
-    alignSelf: 'flex-end',
     marginLeft: 'auto',
   },
-  ctaContainer: {
-    marginTop: hp('4%'),
-  },
-})
+});

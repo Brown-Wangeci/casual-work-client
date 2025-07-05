@@ -36,10 +36,9 @@ export const useAuthStore = create<AuthState>()(
         try {
           await SecureStore.setItemAsync('auth-token', token);
           set({ user, isAuthenticated: true, token });
-          router.replace('/'); // Redirect to home after login
+          router.replace('/');
         } catch (error) {
           console.error('Error storing auth token:', error);
-          // Optionally: show toast or fallback behavior
         }
       },
 

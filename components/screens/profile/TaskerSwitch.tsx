@@ -1,61 +1,59 @@
-import { StyleSheet, View, Text, Switch, Alert } from 'react-native'
-import { widthPercentageToDP as wp } from 'react-native-responsive-screen'
-import colors from '@/constants/Colors'
-import { moderateScale } from 'react-native-size-matters'
-import api from '@/lib/axios'
-import { useAuthStore } from '@/stores/authStore'
-import { useState } from 'react'
-import { extractErrorMessage, logError } from '@/lib/utils'
+import { StyleSheet, View, Text, Switch } from 'react-native';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import colors from '@/constants/Colors';
+import { moderateScale } from 'react-native-size-matters';
+import api from '@/lib/utils/axios';
+import { useAuthStore } from '@/stores/authStore';
+import { useCallback, useState } from 'react';
+import { extractErrorMessage, logError } from '@/lib/utils';
+import { showToast } from '@/lib/utils/showToast';
 
 const TaskerSwitch = () => {
-  const user = useAuthStore((state) => state.user)
-  const updateUser = useAuthStore((state) => state.updateUser)
+  const user = useAuthStore((state) => state.user);
+  const updateUser = useAuthStore((state) => state.updateUser);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const [isUpdating, setIsUpdating] = useState(false)
+  if (!user) return null;
 
-  if (!user) return null
+  const isEnabled = user.isTasker ?? false;
 
-  const isEnabled = user.isTasker ?? false
+  const handleToggle = useCallback(async () => {
+    const newStatus = !isEnabled;
+    const previousUser = { ...user };
 
-  const handleToggle = async () => {
-    const newStatus = !isEnabled
-
-    // Optimistically update the UI
-    updateUser({ isTasker: newStatus })
-    setIsUpdating(true)
+    // Optimistically update UI
+    updateUser({ ...user, isTasker: newStatus });
+    setIsUpdating(true);
 
     try {
-      const response = await api.patch(`user/toggle`)
+      const response = await api.patch(`/user/toggle`);
 
-      if (response.status === 200) {
-        // API success, no further action needed
-        const availableStatus = response.data.user.isTasker
-        updateUser({ isTasker: availableStatus })
-        const message = response.data.message || `You are now ${availableStatus ? 'available' : 'not available'} as a Tasker.`
-        Alert.alert('Success', message); 
-        // Alert.alert('Success'
+      if (response.status === 200 && response.data?.user) {
+        updateUser(response.data.user);
+        const statusMsg = response.data.message || `You are now ${response.data.user.isTasker ? 'available' : 'unavailable'} as a Tasker.`;
+        showToast('success', 'Status Updated', statusMsg);
       } else {
-        // Revert optimistic update
-        updateUser({ isTasker: isEnabled })
-        Alert.alert('Error', 'Could not update tasker status. Please try again.')
+        throw new Error('Unexpected response from server.');
       }
     } catch (error: any) {
-      updateUser({ isTasker: isEnabled }) // Revert back
-      logError(error, 'handleToggleAvailability');
-      const message = extractErrorMessage(error)
-      Alert.alert('Error', message || 'An error occurred while updating your availability as a Tasker.')
+      logError(error, 'TaskerSwitch > handleToggle');
+      updateUser(previousUser);
+      showToast('error', 'Failed to Update Status', extractErrorMessage(error));
     } finally {
-      setIsUpdating(false)
+      setIsUpdating(false);
     }
-  }
+  }, [isEnabled, updateUser, user]);
 
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Available as a Tasker</Text>
       <View style={styles.customTrack}>
         <Switch
-          trackColor={{ false: 'transparent', true: 'transparent' }}
-          thumbColor={isEnabled ? colors.text.green : colors.component.green.bg}
+          trackColor={{
+            false: colors.component.stroke,
+            true: colors.component.green.bg,
+          }}
+          thumbColor={isEnabled ? colors.text.green : colors.text.light}
           ios_backgroundColor={colors.component.stroke}
           onValueChange={handleToggle}
           value={isEnabled}
@@ -63,10 +61,10 @@ const TaskerSwitch = () => {
         />
       </View>
     </View>
-  )
-}
+  );
+};
 
-export default TaskerSwitch
+export default TaskerSwitch;
 
 const styles = StyleSheet.create({
   container: {
@@ -87,14 +85,9 @@ const styles = StyleSheet.create({
   },
   customTrack: {
     width: wp('16%'),
-    backgroundColor: colors.component.input,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: colors.component.stroke,
-    borderRadius: 20,
     height: moderateScale(30, 0.2),
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: wp('.5%'),
   },
-})
+});

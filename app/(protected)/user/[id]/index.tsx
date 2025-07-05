@@ -1,4 +1,13 @@
-import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import {
+  Linking,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import { Image } from 'expo-image';
 import CustomHeader from '@/components/layout/CustomHeader';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
@@ -13,20 +22,26 @@ import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import Vr from '@/components/common/Vr';
 import ScreenBackground from '@/components/layout/ScreenBackground';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import api from '@/lib/axios';
+import api from '@/lib/utils/axios';
 import { useTempUserStore } from '@/stores/tempUserStore';
 import Loading from '@/components/common/Loading';
 import { logError, extractErrorMessage } from '@/lib/utils';
+import { showToast } from '@/lib/utils/showToast';
 
 const UserProfileScreen = () => {
   const [userData, setUserData] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState(false);
+
   const profileData = useTempUserStore((state) => state.userProfile);
   const { id } = useLocalSearchParams();
   const router = useRouter();
 
-  const fetchUserData = async () => {
-    setLoading(true);
+  const fetchUserData = async (force = false) => {
+    if (!id) return;
+
+    if (!force) setLoading(true);
+    else setRefreshing(true);
 
     try {
       const response = await api.get(`/users/${id}`);
@@ -34,17 +49,24 @@ const UserProfileScreen = () => {
     } catch (error) {
       logError(error, 'UserProfileScreen > fetchUserData');
       const message = extractErrorMessage(error);
-      console.warn('Failed to load user profile:', message);
+      showToast('error', 'Failed to Load Profile', message);
     } finally {
-      setLoading(false);
+      if (!force) setLoading(false);
+      else setRefreshing(false);
     }
   };
 
+  const onRefresh = () => {
+    fetchUserData(true);
+  };
+
   useEffect(() => {
+    if (!id) return;
+
     if (profileData && profileData.id === id) {
       setUserData(profileData);
     } else {
-      fetchUserData(); // Fallback if user navigates directly
+      fetchUserData();
     }
   }, [id]);
 
@@ -56,7 +78,10 @@ const UserProfileScreen = () => {
   return (
     <ScreenBackground>
       <CustomHeader title="Profile" showBackButton />
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
         <ContentWrapper style={{ gap: moderateScale(20, 0.2) }}>
           {loading ? (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -93,9 +118,7 @@ const UserProfileScreen = () => {
                   <Ionicons name="chatbubble-ellipses-outline" size={20} color={colors.text.bright} />
                 </TouchableOpacity>
                 <Vr />
-                <TouchableOpacity
-                  onPress={() => safePhone && Linking.openURL(`https://wa.me/${safePhone}`)}
-                >
+                <TouchableOpacity onPress={() => safePhone && Linking.openURL(`https://wa.me/${safePhone}`)}>
                   <FontAwesome name="whatsapp" size={20} color={colors.text.bright} />
                 </TouchableOpacity>
               </View>
@@ -179,7 +202,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     width: wp('45%'),
     height: wp('45%'),
-    borderRadius: '50%',
+    borderRadius: wp('45%') / 2,
     borderWidth: 2,
     borderColor: colors.component.green.bg,
     overflow: 'hidden',

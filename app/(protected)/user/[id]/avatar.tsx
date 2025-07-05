@@ -1,4 +1,9 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { Image } from 'expo-image';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { moderateScale } from 'react-native-size-matters';
@@ -7,37 +12,37 @@ import ContentWrapper from '@/components/layout/ContentWrapper';
 import ScreenBackground from '@/components/layout/ScreenBackground';
 import { useEffect, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
-import api from '@/lib/axios';
+import api from '@/lib/utils/axios';
 import Loading from '@/components/common/Loading';
 import { useTempUserStore } from '@/stores/tempUserStore';
-import { logError, extractErrorMessage } from '@/lib/utils';
+import { extractErrorMessage, logError } from '@/lib/utils';
+import { showToast } from '@/lib/utils/showToast';
 import CustomHeader from '@/components/layout/CustomHeader';
 
 const AvatarScreen = () => {
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const { id } = useLocalSearchParams();
   const profileData = useTempUserStore((state) => state.userProfile);
 
   const fetchUserAvatar = async () => {
     setLoading(true);
-    setError(null);
     try {
       const response = await api.get(`/users/${id}`);
-      const avatar = response.data[0]?.profilePicture || null;
+      const avatar = response.data.user?.profilePicture || null;
       setUserAvatar(avatar);
     } catch (error) {
       logError(error, 'AvatarScreen > fetchUserAvatar');
       const message = extractErrorMessage(error);
-      setError(message);
+      showToast('error', 'Failed to Load Avatar', message);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    if (!id) return;
     if (profileData && profileData.id === id) {
       setUserAvatar(profileData.profilePicture || null);
     } else {
@@ -47,17 +52,13 @@ const AvatarScreen = () => {
 
   return (
     <ScreenBackground>
-      <CustomHeader showBackButton={true} title="Avatar" />
+      <CustomHeader showBackButton title="Avatar" />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <ContentWrapper style={{ alignItems: 'center', justifyContent: 'center' }}>
           {loading ? (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
               <Loading />
             </View>
-          ) : error ? (
-            <Text style={{ color: colors.text.red, fontSize: moderateScale(16, 0.2) }}>
-              Error: {error}
-            </Text>
           ) : (
             <View style={styles.imageContainer}>
               <Image
@@ -86,9 +87,10 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    aspectRatio: 1 / 1,
-    borderRadius: '50%',
-    borderStyle: 'solid',
+    aspectRatio: 1,
+    borderRadius: 9999,
+    borderWidth: 2,
+    borderColor: colors.component.green.bg,
     overflow: 'hidden',
     alignSelf: 'center',
   },

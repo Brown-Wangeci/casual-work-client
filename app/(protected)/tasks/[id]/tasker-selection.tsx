@@ -7,48 +7,40 @@ import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { moderateScale } from 'react-native-size-matters';
 import colors from '@/constants/Colors';
 import { logError, extractErrorMessage } from '@/lib/utils';
-import api from '@/lib/axios';
+import api from '@/lib/utils/axios';
 import { useLocalSearchParams } from 'expo-router';
 import TaskerSelectionProfileCard from '@/components/screens/tasker-selection/TaskerSelectionProfileCard';
 import Loading from '@/components/common/Loading';
 import { TaskApplication } from '@/constants/Types';
+import { showToast } from '@/lib/utils/showToast';
 
 const TaskerSelectionScreen = () => {
   const [applications, setApplications] = useState<TaskApplication[] | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
   const { id } = useLocalSearchParams();
 
-  const fetchApplications = async () => {
-    setIsLoading(true);
-    setError(null);
-
+  const fetchApplications = async (isRefetch = false) => {
     try {
+      if (!isRefetch) setIsLoading(true);
       const response = await api.get(`applications/${id}`);
-      console.log(response.data);
-      setApplications(response.data.taskApplications);
+      console.log('Fetched applications:', response.data);
+      setApplications(response.data.taskApplications || []);
     } catch (error) {
       logError(error, 'TaskerSelectionScreen > fetchApplications');
-      const message = extractErrorMessage(error);
-      setError(message || 'Failed to fetch applications.');
+      showToast('error', 'Failed to load applications', extractErrorMessage(error));
     } finally {
-      setIsLoading(false);
+      if (isRefetch) {
+        setIsRefreshing(false);
+      } else {
+        setIsLoading(false);
+      }
     }
   };
 
   const onRefresh = async () => {
     setIsRefreshing(true);
-    try {
-      await fetchApplications();
-    } catch (error) {
-      logError(error, 'TaskerSelectionScreen > onRefresh');
-      const message = extractErrorMessage(error);
-      setError(message || 'Failed to refresh applications.');
-    } finally {
-      setIsRefreshing(false);
-    }
+    await fetchApplications(true);
   };
 
   useEffect(() => {
@@ -62,19 +54,13 @@ const TaskerSelectionScreen = () => {
       <CustomHeader title="Tasker Selection" showBackButton />
       <ContentWrapper style={styles.container}>
         {isLoading ? (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Loading message='Loading Applications' />
+          <View style={styles.center}>
+            <Loading message="Loading Applications" />
           </View>
-        ) : error ? (
-          <Text style={{ fontSize: moderateScale(16), color: colors.progress.cancelled }}>
-            Error: {error}
-          </Text>
         ) : applications && applications.length > 0 ? (
           <FlatList
             data={applications}
-            renderItem={({ item }) => (
-              <TaskerSelectionProfileCard application={item} />
-            )}
+            renderItem={({ item }) => <TaskerSelectionProfileCard application={item} />}
             keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={{ gap: moderateScale(20, 0.2) }}
             refreshing={isRefreshing}
@@ -82,9 +68,7 @@ const TaskerSelectionScreen = () => {
             showsVerticalScrollIndicator={false}
           />
         ) : (
-          <Text style={{ fontSize: moderateScale(16), color: '#888' }}>
-            No applications found for this task.
-          </Text>
+          <Text style={styles.emptyText}>No applications found for this task.</Text>
         )}
       </ContentWrapper>
     </ScreenBackground>
@@ -99,5 +83,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: hp('3%'),
     alignSelf: 'center',
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: moderateScale(16),
+    color: colors.text.light,
+    textAlign: 'center',
   },
 });

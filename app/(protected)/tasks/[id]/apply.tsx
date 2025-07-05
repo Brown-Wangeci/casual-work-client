@@ -19,10 +19,10 @@ import { formatDistanceToNow } from 'date-fns';
 import { extractErrorMessage, logError } from '@/lib/utils';
 import { useTempUserStore } from '@/stores/tempUserStore';
 import { useTaskFeedStore } from '@/stores/taskFeedStore';
-import api from '@/lib/axios';
+import api from '@/lib/utils/axios';
 import { useAuthStore } from '@/stores/authStore';
 import { useTasksStore } from '@/stores/tasksStore';
-import { showToast } from '@/lib/showToast';
+import { showToast } from '@/lib/utils/showToast';
 
 const TaskApplicationScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
@@ -36,6 +36,7 @@ const TaskApplicationScreen = () => {
   const updateTask = useTaskFeedStore((state) => state.updateTask);
   const addTaskApplication = useTasksStore((state) => state.addTaskApplication);
   const getTaskById = useTaskFeedStore((state) => state.getTaskById);
+  const getApplicationStatus = useTasksStore((state) => state.getApplicationStatus);
 
   const router = useRouter();
   const { id } = useLocalSearchParams();
@@ -44,33 +45,38 @@ const TaskApplicationScreen = () => {
     setMapHeight((prev) => (prev === hp('30%') ? hp('70%') : hp('30%')));
   };
 
-  const fetchTaskDetails = async () => {
-    setLoading(true);
+  const fetchTaskDetails = async (force = false) => {
     setError(null);
 
-    const cachedTask = getTaskById(id as string);
-    if (cachedTask) {
-      setTask(cachedTask);
-      setLoading(false);
-      return;
+    if (!force) {
+      const cachedTask = getTaskById(id as string);
+      if (cachedTask) {
+        setTask(cachedTask);
+        setLoading(false);
+        return;
+      }
     }
 
     try {
       const response = await api.get(`/tasks/${id}`);
       if (!response.data?.task) throw new Error('Task not found.');
-      setTask(response.data.task);
+      const taskData = response.data.task;
+      updateTask(taskData); // ✅ sync to store
+      setTask(taskData);
     } catch (error) {
       logError(error, 'fetchTaskDetails');
-      setError(extractErrorMessage(error));
-      showToast('error', 'Failed to load task', extractErrorMessage(error));
+      const message = extractErrorMessage(error);
+      setError(message);
+      showToast('error', 'Failed to load task', message);
     } finally {
       setLoading(false);
     }
   };
 
-  const onRefresh = () => {
+
+  const onRefresh = async () => {
     setRefreshing(true);
-    fetchTaskDetails();
+    await fetchTaskDetails(true); 
     setRefreshing(false);
   };
 
@@ -102,8 +108,11 @@ const TaskApplicationScreen = () => {
       return;
     }
 
-    const alreadyApplied = task.taskersApplied?.some((u) => u.id === user.id);
-    if (alreadyApplied) {
+    const status = getApplicationStatus(id as string, user.id);
+    if (status === 'accepted') {
+      showToast('info', 'You’ve Been Accepted', 'You are now assigned to this task.');
+      return;
+    } else if (status === 'pending') {
       showToast('info', 'Already Applied', 'You already applied for this task.');
       return;
     }
@@ -112,7 +121,6 @@ const TaskApplicationScreen = () => {
 
     try {
       const response = await api.post(`/tasks/${id}/apply`);
-
       if (response.status === 201 || response.data?.success) {
         updateTask(response.data.data.task);
         addTaskApplication(response.data.data);
@@ -129,6 +137,10 @@ const TaskApplicationScreen = () => {
       setIsApplying(false);
     }
   };
+
+  const user = useAuthStore.getState().user;
+  const status = user && id ? getApplicationStatus(id as string, user.id) : null;
+  console.log('Application status:', status);
 
   return (
     <ScreenBackground>
@@ -157,17 +169,15 @@ const TaskApplicationScreen = () => {
 
               <Text style={styles.subTitle}>Location</Text>
               <Text style={styles.description}>{address}</Text>
-              <View style={[styles.mapViewContainer, { height: mapHeight }]}>
+              <View style={[styles.mapViewContainer, { height: mapHeight }]}> 
                 <LiveMapView setAddress={setAddress} address={address} />
               </View>
               <TouchableOpacity onPress={toggleMapHeight}>
                 <FontAwesome6 name={mapHeight === hp('30%') ? 'expand' : 'compress'} size={24} color={colors.text.bright} style={styles.resizeIcon} />
               </TouchableOpacity>
 
-              <Text style={styles.subTitle}>Posted Time</Text>
-              <Text style={styles.description}>
-                {formatDistanceToNow(new Date(task.updatedAt), { addSuffix: true })}
-              </Text>
+              <Text style={styles.subTitle}>Posted</Text>
+              <Text style={styles.description}>{formatDistanceToNow(new Date(task.createdAt), { addSuffix: true })}</Text>
 
               <Text style={styles.subTitle}>Task Poster</Text>
               <View style={styles.taskPoster}>
@@ -187,7 +197,15 @@ const TaskApplicationScreen = () => {
               </View>
 
               <View style={styles.ctaContainer}>
-                <Button title="APPLY FOR TASK" type="primary" onPress={onApplyForTask} loading={isApplying} />
+                {status === 'accepted' ? (
+                  <Text style={styles.acceptedText}>🎉 You’ve been selected for this task!</Text>
+                ) : status === 'denied' ? (
+                  <Text style={styles.rejectedText}>Unfortunately, your application was not selected.</Text>
+                ) : status === 'pending' ? (
+                  <Text style={styles.infoText}>You have already applied for this task. Please wait for the poster’s response.</Text>
+                ) : (
+                  <Button title="APPLY FOR TASK" type="primary" onPress={onApplyForTask} loading={isApplying} />
+                )}
               </View>
             </>
           ) : (
@@ -243,7 +261,6 @@ const styles = StyleSheet.create({
   mapViewContainer: {
     width: '100%',
     backgroundColor: colors.component.bg,
-    borderStyle: 'solid',
     borderWidth: 2,
     borderColor: colors.component.stroke,
     borderRadius: 12,
@@ -255,7 +272,6 @@ const styles = StyleSheet.create({
   },
   taskPoster: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     alignItems: 'center',
     paddingVertical: wp('2%'),
   },
@@ -263,7 +279,6 @@ const styles = StyleSheet.create({
     width: wp('16%'),
     height: wp('16%'),
     borderRadius: 100,
-    borderStyle: 'solid',
     borderWidth: 2,
     borderColor: colors.component.stroke,
     overflow: 'hidden',
@@ -281,10 +296,24 @@ const styles = StyleSheet.create({
     fontFamily: 'poppins-bold',
   },
   buttonContainer: {
-    alignSelf: 'flex-end',
     marginLeft: 'auto',
   },
   ctaContainer: {
     marginTop: hp('4%'),
+  },
+  acceptedText: {
+    fontSize: moderateScale(14, 0.2),
+    fontFamily: 'poppins-bold',
+    color: colors.text.green,
+  },
+  infoText: {
+    fontSize: moderateScale(14, 0.2),
+    fontFamily: 'poppins-medium',
+    color: colors.text.infoText,
+  },
+  rejectedText: {
+    fontSize: moderateScale(14, 0.2),
+    fontFamily: 'poppins-medium',
+    color: colors.text.red,
   },
 });

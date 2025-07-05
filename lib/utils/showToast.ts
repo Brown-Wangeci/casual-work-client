@@ -13,7 +13,7 @@ export const showToast = (
     text1: title,
     text2: message,
     position: 'top',
-    visibilityTime: 3000, // 3 seconds
+    visibilityTime: 5000, // 3 seconds
     autoHide: true,
     topOffset: 50,
   });

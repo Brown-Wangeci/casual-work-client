@@ -1,86 +1,80 @@
-import { Alert, Keyboard, Platform, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native'
-import { useState } from 'react'
-import ContentWrapper from '@/components/layout/ContentWrapper'
-import CustomHeader from '@/components/layout/CustomHeader'
-import Button from '@/components/ui/Button'
-import colors from '@/constants/Colors'
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen'
-import { moderateScale } from 'react-native-size-matters'
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
-import { useRouter } from 'expo-router'
-import ThemedInput from '@/components/ui/ThemedInput'
-import InfoText from '@/components/common/InfoText'
-import TaskCategorySelect from '@/components/screens/post-task/TaskCategorySelect'
-import Hr from '@/components/common/Hr'
-import { TaskInCreation } from '@/constants/Types'
-import ScreenBackground from '@/components/layout/ScreenBackground'
-import api from '@/lib/axios'
-import { extractErrorMessage, logError } from '@/lib/utils'
-import { useTasksStore } from '@/stores/tasksStore'
+import { Keyboard, Platform, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native';
+import { useState } from 'react';
+import ContentWrapper from '@/components/layout/ContentWrapper';
+import CustomHeader from '@/components/layout/CustomHeader';
+import Button from '@/components/ui/Button';
+import colors from '@/constants/Colors';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { moderateScale } from 'react-native-size-matters';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useRouter } from 'expo-router';
+import ThemedInput from '@/components/ui/ThemedInput';
+import InfoText from '@/components/common/InfoText';
+import TaskCategorySelect from '@/components/screens/post-task/TaskCategorySelect';
+import Hr from '@/components/common/Hr';
+import { TaskInCreation } from '@/constants/Types';
+import ScreenBackground from '@/components/layout/ScreenBackground';
+import api from '@/lib/utils/axios';
+import { extractErrorMessage, logError } from '@/lib/utils';
+import { showToast } from '@/lib/utils/showToast';
+import { useTasksStore } from '@/stores/tasksStore';
 
 const PostTaskScreen = () => {
-  const [createdTask, setCreatedTask] = useState< TaskInCreation >(
-    {
-      title: '',
-      description: '',
-      category: '',
-      location: '',
-      offer: null,
-    }
-  );
-  const addPostedTask = useTasksStore((state) => state.addCreatedTask);
-  const [ loading, setLoading ] = useState < boolean > (false);
+  const [createdTask, setCreatedTask] = useState<TaskInCreation>({
+    title: '',
+    description: '',
+    category: '',
+    location: '',
+    offer: null,
+  });
 
+  const addPostedTask = useTasksStore((state) => state.addCreatedTask);
+  const [loading, setLoading] = useState(false);
   const MAX_DESCRIPTION_LENGTH = 400;
   const MAX_TITLE_LENGTH = 50;
-  const router = useRouter()
+  const router = useRouter();
 
   const handleCreateTask = async () => {
+    const { title, description, category, location, offer } = createdTask;
 
-    if (!createdTask.title || !createdTask.description || !createdTask.location || createdTask.offer === null) {
-      Alert.alert('Error', 'Please fill in all required fields.');
+    if (!title || !description || !location || offer === null) {
+      showToast('error', 'Missing fields', 'Please fill in all required fields.');
       return;
     }
 
-    if (createdTask.title.length > MAX_TITLE_LENGTH) {
-      Alert.alert('Error', `Title cannot exceed ${MAX_TITLE_LENGTH} characters.`);
+    if (title.length > MAX_TITLE_LENGTH) {
+      showToast('error', 'Title too long', `Maximum ${MAX_TITLE_LENGTH} characters allowed.`);
       return;
     }
 
-    if (createdTask.description.length > MAX_DESCRIPTION_LENGTH) {
-      Alert.alert('Error', `Description cannot exceed ${MAX_DESCRIPTION_LENGTH} characters.`);
+    if (description.length > MAX_DESCRIPTION_LENGTH) {
+      showToast('error', 'Description too long', `Maximum ${MAX_DESCRIPTION_LENGTH} characters allowed.`);
       return;
     }
 
-    if (createdTask.offer <= 0) {
-      Alert.alert('Error', 'Offer amount must be greater than zero.');
+    if (offer <= 0) {
+      showToast('error', 'Invalid offer', 'Offer amount must be greater than zero.');
       return;
     }
 
     try {
-
       setLoading(true);
-      const response = await api.post(`/tasks`, { ...createdTask });
 
-      if (
-        response.status === 201 &&
-        response.data &&
-        response.data.task &&
-        typeof response.data.task.id === 'string'
-      ) {
+      const response = await api.post('/tasks', createdTask);
+
+      if (response.status === 201 && response.data?.task?.id) {
         const successMessage = response.data.message || 'Task created successfully!';
-        console.log('Created task:', response.data.task);
         addPostedTask(response.data.task);
-        Alert.alert('Success', successMessage);
+        showToast('success', 'Task Created', successMessage);
         router.push(`/tasks/${response.data.task.id}/confirmation`);
       } else {
-        logError(response, 'Unexpected response structure in handleCreateTask');
-        Alert.alert('Error', 'Unexpected server response. Please try again.');
+        logError(response, 'Unexpected response structure');
+        showToast('error', 'Task creation Failed', 'Unexpected server response. Please try again.');
       }
     } catch (error) {
-      logError(error, 'handleCreateTask');
+      logError(error, 'PostTaskScreen > handleCreateTask');
       const message = extractErrorMessage(error);
-      Alert.alert('Error', message);
+      showToast('error', 'Task creation Failed', message);
     } finally {
       setLoading(false);
     }
@@ -88,7 +82,7 @@ const PostTaskScreen = () => {
 
   return (
     <ScreenBackground>
-      <CustomHeader title='Create Task' />
+      <CustomHeader title="Create Task" />
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAwareScrollView
           contentContainerStyle={styles.scrollContainer}
@@ -98,7 +92,6 @@ const PostTaskScreen = () => {
         >
           <ContentWrapper>
             <Text style={styles.title}>Task Details</Text>
-
             <View style={styles.inputContainer}>
               <View style={styles.inputBlock}>
                 <Text style={styles.inputLabel}>Task Title</Text>
@@ -111,10 +104,9 @@ const PostTaskScreen = () => {
                   onChangeText={(text) => setCreatedTask((prev) => ({ ...prev, title: text }))}
                   maxLength={MAX_TITLE_LENGTH}
                 />
-                <Text style={[styles.textCount]}>
-                  { createdTask.title.length } / { MAX_TITLE_LENGTH }
-                </Text>
+                <Text style={styles.textCount}>{createdTask.title.length} / {MAX_TITLE_LENGTH}</Text>
               </View>
+
               <View style={styles.inputBlock}>
                 <Text style={styles.inputLabel}>Description</Text>
                 <InfoText style={{ marginBottom: hp('1%') }}>
@@ -123,19 +115,15 @@ const PostTaskScreen = () => {
                 <ThemedInput
                   multiline
                   numberOfLines={6}
-                  style={{ 
-                    minHeight: 120,
-                    textAlignVertical: 'top'
-                  }}
+                  style={{ minHeight: 120, textAlignVertical: 'top' }}
                   maxLength={MAX_DESCRIPTION_LENGTH}
                   value={createdTask.description}
                   onChangeText={(text) => setCreatedTask((prev) => ({ ...prev, description: text }))}
                   placeholder="Describe the task in detail"
                 />
-                <Text style={[styles.textCount]}>
-                  { createdTask.description.length } / { MAX_DESCRIPTION_LENGTH }
-                </Text>
+                <Text style={styles.textCount}>{createdTask.description.length} / {MAX_DESCRIPTION_LENGTH}</Text>
               </View>
+
               <View style={styles.inputBlock}>
                 <Text style={styles.inputLabel}>Category</Text>
                 <TaskCategorySelect
@@ -143,17 +131,18 @@ const PostTaskScreen = () => {
                   categoryValue={createdTask.category}
                 />
               </View>
+
               <View style={styles.inputBlock}>
                 <Text style={styles.inputLabel}>Location</Text>
                 <ThemedInput
                   placeholder="Your Address"
                   value={createdTask.location}
-                  onChangeText={(text) => setCreatedTask({ ...createdTask, location: text })}
+                  onChangeText={(text) => setCreatedTask((prev) => ({ ...prev, location: text }))}
                 />
               </View>
             </View>
 
-            <Hr/>
+            <Hr />
             <Text style={styles.title}>Offer</Text>
 
             <View style={styles.inputContainer}>
@@ -162,26 +151,26 @@ const PostTaskScreen = () => {
                 <ThemedInput
                   placeholder="Ksh. 100"
                   keyboardType="numeric"
-                  value={ createdTask.offer !== null ? createdTask.offer.toString() : ''}
+                  value={createdTask.offer !== null ? createdTask.offer.toString() : ''}
                   onChangeText={(text) => {
                     const numericValue = parseFloat(text.replace(/[^0-9.]/g, ''));
-                    setCreatedTask({ ...createdTask, offer: isNaN(numericValue) ? null : numericValue });
+                    setCreatedTask((prev) => ({ ...prev, offer: isNaN(numericValue) ? null : numericValue }));
                   }}
                 />
               </View>
             </View>
 
             <View style={styles.buttonContainer}>
-              <Button title="CREATE TASK" type='primary' onPress={ handleCreateTask } loading={loading} />
+              <Button title="CREATE TASK" type="primary" onPress={handleCreateTask} loading={loading} />
             </View>
           </ContentWrapper>
         </KeyboardAwareScrollView>
       </TouchableWithoutFeedback>
     </ScreenBackground>
-  )
-}
+  );
+};
 
-export default PostTaskScreen
+export default PostTaskScreen;
 
 const styles = StyleSheet.create({
   scrollContainer: {
@@ -194,7 +183,7 @@ const styles = StyleSheet.create({
     color: colors.text.green,
     fontSize: moderateScale(18, 0.2),
     fontFamily: 'poppins-semi-bold',
-    marginBottom: hp('1%'), 
+    marginBottom: hp('1%'),
   },
   inputContainer: {
     width: '100%',

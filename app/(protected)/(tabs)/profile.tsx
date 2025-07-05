@@ -1,4 +1,15 @@
-import { Alert, Keyboard, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native'
+import {
+  Alert,
+  Keyboard,
+  Platform,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+  Pressable,
+} from 'react-native'
 import { Image } from 'expo-image'
 import CustomHeader from '@/components/layout/CustomHeader'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
@@ -13,72 +24,116 @@ import { useEffect, useState } from 'react'
 import Button from '@/components/ui/Button'
 import InfoText from '@/components/common/InfoText'
 import ScreenBackground from '@/components/layout/ScreenBackground'
-import { confirmAction } from '@/lib/utils'
+import { confirmAction, extractErrorMessage, logError } from '@/lib/utils'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
-import api from '@/lib/axios'
+import api from '@/lib/utils/axios'
 import { useAuthStore } from '@/stores/authStore'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
-import { extractErrorMessage, logError } from '@/lib/utils'
+import { showToast } from '@/lib/utils/showToast'
+import { safeFormatPhoneNumber } from '@/lib/utils/formatPhone'
 
 const ProfileScreen = () => {
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
-  const [userInProfile, setUserInProfile] = useState({...user})
-  const userUpdate = useAuthStore((state) => state.updateUser)
+  const updateUserStore = useAuthStore((state) => state.updateUser)
+  const [userInProfile, setUserInProfile] = useState({ ...user })
   const [isEditing, setIsEditing] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+  const [hasChanges, setHasChanges] = useState(false)
+  const router = useRouter()
+
+  const fetchUserProfile = async () => {
+    setRefreshing(true)
+    try {
+      const response = await api.get('/user/me')
+      updateUserStore(response.data.user)
+      setUserInProfile(response.data.user)
+      showToast('success', 'Profile refreshed')
+    } catch (error) {
+      logError(error, 'ProfileScreen > fetchUserProfile')
+      showToast('error', 'Failed to refresh profile', extractErrorMessage(error))
+    } finally {
+      setRefreshing(false)
+    }
+  }
 
   useEffect(() => {
-    setUserInProfile({ ...user });
-  }, [user]);
+    setUserInProfile({ ...user })
+  }, [user])
 
-  const router  = useRouter()
+  useEffect(() => {
+    const original = JSON.stringify({
+      username: user?.username,
+      email: user?.email,
+      phone: user?.phone,
+    })
 
-    if (!userInProfile) {
-      Alert.alert('Error', 'User not found. Please log in again.');
-      router.replace('/login');
-      return null; // Prevent rendering if user is not found
-    }
+    const current = JSON.stringify({
+      username: userInProfile?.username,
+      email: userInProfile?.email,
+      phone: userInProfile?.phone,
+    })
 
-  // Review this logic to fix the missmatch between user and userInProfile
+    setHasChanges(original !== current)
+  }, [userInProfile])
+
+  if (!userInProfile) {
+    showToast('error', 'User not found. Please log in again.')
+    router.replace('/login')
+    return (
+      <ScreenBackground>
+        <CustomHeader title='Profile' />
+        <ContentWrapper>
+          <Text style={styles.title}>Redirecting to login...</Text>
+        </ContentWrapper>
+      </ScreenBackground>
+    )
+  }
+
   const updateUser = async () => {
-    if (!userInProfile.username || !userInProfile.email || !userInProfile.phone) {
-      Alert.alert('Missing Information', 'Please fill in all required fields.');
-      return;
+    const { username, email, phone } = userInProfile
+
+    if (!username || !email || !phone) {
+      showToast('info', 'Please fill in all required fields.')
+      return
     }
 
-    setIsEditing(true);
+    if (!email.endsWith('@strathmore.edu')) {
+      showToast('error', 'Invalid Email', 'Only Strathmore emails are allowed.')
+      return
+    }
 
-    // Save current user as backup in case we need to rollback
-    const previousUser = { ...user };
+    let formattedPhone = safeFormatPhoneNumber(phone)
+    if (!formattedPhone) {
+      showToast('error', 'Invalid Phone Number', 'Please enter a valid phone number.')
+      return
+    }
 
-    // Optimistically update the UI
-    userUpdate(userInProfile);
+    setIsEditing(true)
+    const previousUser = { ...user }
+    const updatedProfile = { ...userInProfile, phone: formattedPhone }
+    updateUserStore(updatedProfile)
 
     try {
-      const response = await api.put('/user/me', userInProfile);
+      const response = await api.put('/user/me', updatedProfile)
 
       if (response.status === 202) {
-        userUpdate(response.data.user); // Confirm with fresh data from backend
-        const message = response.data.message || 'Profile updated successfully.'; 
-        Alert.alert('Success', message);
+        updateUserStore(response.data.user)
+        showToast('success', response.data.message || 'Profile updated successfully.')
       } else {
-        console.warn('Unexpected response:', response);
-        userUpdate(previousUser); // Roll back
-        Alert.alert('Update Failed', 'Something went wrong. Please try again later.'); 
+        updateUserStore(previousUser)
+        showToast('error', 'Update Failed', 'Something went wrong. Please try again later.')
       }
-    } catch (error: any) {
-
-      // Roll back to previous state
-      userUpdate(previousUser);
-      logError(error, 'handleUpdateUser');
-      const message = extractErrorMessage(error) || 'An error occurred while updating your profile.';
-      Alert.alert('Error', message);
+    } catch (error) {
+      updateUserStore(previousUser)
+      logError(error, 'handleUpdateUser')
+      showToast('error', 'Error', extractErrorMessage(error) || 'An error occurred while updating your profile.')
     } finally {
-      setIsEditing(false);
+      setIsEditing(false)
     }
-  };
-  // Function to handle user profile update with confirmation
+  }
+
   const handleUpdateProfile = async () => {
     confirmAction(
       'Are you sure you want to update your profile?',
@@ -91,16 +146,15 @@ const ProfileScreen = () => {
     confirmAction(
       'Are you sure you want to log out?',
       async () => {
-        await logout();
+        await logout()
       },
       () => {}
     )
   }
 
-
-  const postedTasks = userInProfile.tasksPosted ?? 0;
-  const completedTasks = userInProfile.tasksCompleted ?? 0;
-  const rating = userInProfile.rating ?? 0;
+  const postedTasks = userInProfile.tasksPosted ?? 0
+  const completedTasks = userInProfile.tasksCompleted ?? 0
+  const rating = userInProfile.rating ?? 0
 
   return (
     <ScreenBackground>
@@ -110,10 +164,11 @@ const ProfileScreen = () => {
           contentContainerStyle={styles.scrollContainer}
           extraScrollHeight={Platform.OS === 'ios' ? 60 : 0}
           enableOnAndroid
-          keyboardShouldPersistTaps="handled"
+          keyboardShouldPersistTaps='handled'
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchUserProfile} />}
         >
           <ContentWrapper style={{ gap: moderateScale(20, 0.2) }}>
-            <TouchableWithoutFeedback onPress={()=>{ router.push(`/user/avatar`) }}>
+            <Pressable onPress={() => { router.push(`/user/avatar`) }}>
               <View style={styles.imageContainer}>
                 <Image
                   source={
@@ -124,21 +179,21 @@ const ProfileScreen = () => {
                   style={styles.image}
                 />
               </View>
-            </TouchableWithoutFeedback>
+            </Pressable>
             <View style={styles.infoContainer}>
               <ThemedInput
                 placeholder='Enter preferred username'
                 value={userInProfile.username}
-                onChangeText={(text) => setUserInProfile((prev) => ({ ...prev, username: text })) }
-                autoCapitalize="none"
+                onChangeText={(text) => setUserInProfile((prev) => ({ ...prev, username: text }))}
+                autoCapitalize='none'
               />
               <ThemedInput
                 placeholder='Enter your school email'
                 value={userInProfile.email}
-                onChangeText={ (text) => setUserInProfile((prev) => ({ ...prev, email: text })) }
-                autoCapitalize="none"
-                keyboardType="email-address"
-                autoComplete="email"
+                onChangeText={(text) => setUserInProfile((prev) => ({ ...prev, email: text }))}
+                autoCapitalize='none'
+                keyboardType='email-address'
+                autoComplete='email'
               />
               <ThemedInput
                 placeholder='e.g. 0712345678'
@@ -155,8 +210,9 @@ const ProfileScreen = () => {
                 title='Update Profile'
                 type='primary'
                 small
-                onPress={ handleUpdateProfile }
+                onPress={handleUpdateProfile}
                 loading={isEditing}
+                disabled={!hasChanges}
               />
             </View>
             <TaskerSwitch />
@@ -168,19 +224,18 @@ const ProfileScreen = () => {
                   width={wp('42%')}
                   height={moderateScale(100, 0.2)}
                 >
-                    <Text style={styles.number}>{ completedTasks }</Text>
-                    <Text style={styles.subText}>Tasks Completed</Text>
+                  <Text style={styles.number}>{completedTasks}</Text>
+                  <Text style={styles.subText}>Tasks Completed</Text>
                 </SummaryCard>
                 <SummaryCard
                   style={{ gap: moderateScale(8, 0.2) }}
                   width={wp('42%')}
                   height={moderateScale(100, 0.2)}
                 >
-                  <Text style={styles.number}>{ postedTasks }</Text>
+                  <Text style={styles.number}>{postedTasks}</Text>
                   <Text style={styles.subText}>Tasks Posted</Text>
                 </SummaryCard>
               </View>
-              <View></View>
             </View>
             <View>
               <Text style={styles.title}>Rating</Text>
@@ -197,11 +252,9 @@ const ProfileScreen = () => {
               </View>
             </View>
             <View>
-              <TouchableOpacity style={styles.logoutContainer} onPress={ handleLogout }>
-                <Ionicons name="log-out-outline" size={24} color={colors.text.light} />
-                <InfoText style={{ width: '100%' }}>
-                  Logout
-                </InfoText>
+              <TouchableOpacity style={styles.logoutContainer} onPress={handleLogout}>
+                <Ionicons name='log-out-outline' size={24} color={colors.text.light} />
+                <InfoText style={{ width: '100%' }}>Logout</InfoText>
               </TouchableOpacity>
             </View>
           </ContentWrapper>
@@ -245,16 +298,14 @@ const styles = StyleSheet.create({
     lineHeight: moderateScale(30, 0.2),
   },
   imageContainer: {
-      width: wp('45%'),
-      height: wp('45%'),
-      borderRadius: '50%',
-      borderStyle: 'solid',
-      borderWidth: 2,
-      // borderColor: colors.text.green,
-      // borderColor: colors.component.stroke,
-      borderColor: colors.component.green.bg,
-      overflow: 'hidden',
-      alignSelf: 'center',
+    width: wp('45%'),
+    height: wp('45%'),
+    borderRadius: 1000,
+    borderStyle: 'solid',
+    borderWidth: 2,
+    borderColor: colors.component.green.bg,
+    overflow: 'hidden',
+    alignSelf: 'center',
   },
   image: {
     width: '100%',
@@ -270,7 +321,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   logoutContainer: {
-    flexDirection:'row',
+    flexDirection: 'row',
     width: wp('30%'),
     alignItems: 'center',
     padding: moderateScale(10, 0.2),
