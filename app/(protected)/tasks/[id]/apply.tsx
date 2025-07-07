@@ -4,7 +4,6 @@ import { Image } from 'expo-image';
 import colors from '@/constants/Colors';
 import { moderateScale } from 'react-native-size-matters';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import LiveMapView from '@/components/screens/task-track/LiveMapView';
 import StarRating from '@/components/common/StarRating';
 import Button from '@/components/ui/Button';
 import ContentWrapper from '@/components/layout/ContentWrapper';
@@ -23,6 +22,7 @@ import api from '@/lib/utils/axios';
 import { useAuthStore } from '@/stores/authStore';
 import { useTasksStore } from '@/stores/tasksStore';
 import { showToast } from '@/lib/utils/showToast';
+import DynamicMapView from '@/components/common/DynamicMapView';
 
 const TaskApplicationScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
@@ -30,7 +30,6 @@ const TaskApplicationScreen = () => {
   const [isApplying, setIsApplying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [task, setTask] = useState<Task | null>(null);
-  const [address, setAddress] = useState('');
   const [mapHeight, setMapHeight] = useState(hp('30%'));
 
   const updateTask = useTaskFeedStore((state) => state.updateTask);
@@ -61,7 +60,7 @@ const TaskApplicationScreen = () => {
       const response = await api.get(`/tasks/${id}`);
       if (!response.data?.task) throw new Error('Task not found.');
       const taskData = response.data.task;
-      updateTask(taskData); // ✅ sync to store
+      updateTask(taskData);
       setTask(taskData);
     } catch (error) {
       logError(error, 'fetchTaskDetails');
@@ -72,7 +71,6 @@ const TaskApplicationScreen = () => {
       setLoading(false);
     }
   };
-
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -142,6 +140,12 @@ const TaskApplicationScreen = () => {
   const status = user && id ? getApplicationStatus(id as string, user.id) : null;
   console.log('Application status:', status);
 
+  const dummyNairobi = {
+    latitude: -1.286389,
+    longitude: 36.817223,
+    label: 'Nairobi CBD',
+  };
+
   return (
     <ScreenBackground>
       <CustomHeader title='Task Details' showBackButton />
@@ -168,9 +172,14 @@ const TaskApplicationScreen = () => {
               <Text style={styles.description}>{task.description}</Text>
 
               <Text style={styles.subTitle}>Location</Text>
-              <Text style={styles.description}>{address}</Text>
+              <Text style={styles.description}>{task.location || dummyNairobi.label}</Text>
               <View style={[styles.mapViewContainer, { height: mapHeight }]}> 
-                <LiveMapView setAddress={setAddress} address={address} />
+                <DynamicMapView
+                  latitude={task.latitude || dummyNairobi.latitude}
+                  longitude={task.longitude || dummyNairobi.longitude}
+                  label={task.location || dummyNairobi.label}
+                  style={[{ height: '100%' }, { width: '100%' }]}
+                />
               </View>
               <TouchableOpacity onPress={toggleMapHeight}>
                 <FontAwesome6 name={mapHeight === hp('30%') ? 'expand' : 'compress'} size={24} color={colors.text.bright} style={styles.resizeIcon} />

@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: moderateScale(4, 0.2),
     width: '100%',
     flexDirection: 'row',
-    backgroundColor: colors.component.input,
+    backgroundColor: colors.component.bg,
     justifyContent: 'space-between',
     flexWrap: 'wrap',
   },

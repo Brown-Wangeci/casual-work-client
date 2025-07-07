@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.component.input,
+    backgroundColor: colors.component.bg,
     padding: wp('4%'),
     borderStyle: 'solid',
     borderWidth: 1,

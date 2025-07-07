@@ -1,4 +1,4 @@
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { Image } from 'expo-image';
 import colors from '@/constants/Colors';
@@ -20,6 +20,8 @@ import api from '@/lib/utils/axios';
 import { useTasksStore } from '@/stores/tasksStore';
 import ProgressBar from '@/components/ui/ProgressBar';
 import { AxiosError } from 'axios';
+import DynamicMapView from '@/components/common/DynamicMapView';
+import { FontAwesome6 } from '@expo/vector-icons';
 
 const TaskDetailsScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
@@ -27,6 +29,7 @@ const TaskDetailsScreen = () => {
   const [error, setError] = useState<string | null>(null);
   const [task, setTask] = useState<Task | null>(null);
   const [progress, setProgress] = useState<number | null>(null);
+  const [mapHeight, setMapHeight] = useState(hp('30%'));
 
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -75,9 +78,30 @@ const TaskDetailsScreen = () => {
     router.push(`/user/${user.id}`);
   };
 
+  const toggleMapHeight = () => {
+    setMapHeight((prev) => (prev === hp('30%') ? hp('70%') : hp('30%')));
+  };
+
   useEffect(() => {
     fetchTaskDetails();
   }, [id]);
+
+  const getMapData = () => {
+    if (task?.latitude && task?.longitude) {
+      return {
+        latitude: task.latitude,
+        longitude: task.longitude,
+        label: task.location || 'Task Location',
+      };
+    }
+    return {
+      latitude: -1.2921,
+      longitude: 36.8219,
+      label: 'Nairobi, Kenya',
+    };
+  };
+
+  const mapData = getMapData();
 
   return (
     <ScreenBackground>
@@ -115,7 +139,18 @@ const TaskDetailsScreen = () => {
               )}
 
               <Text style={styles.subTitle}>Location</Text>
-              <Text style={styles.description}>{task.location || 'Not specified'}</Text>
+              <Text style={styles.description}>{mapData.label}</Text>
+              <View style={[styles.mapViewContainer, { height: mapHeight }]}> 
+                <DynamicMapView
+                  latitude={mapData.latitude}
+                  longitude={mapData.longitude}
+                  label={mapData.label}
+                  style={[{ height: '100%' }, { width: '100%' }]}
+                />
+              </View>
+              <TouchableOpacity onPress={toggleMapHeight}>
+                <FontAwesome6 name={mapHeight === hp('30%') ? 'expand' : 'compress'} size={24} color={colors.text.bright} style={styles.resizeIcon} />
+              </TouchableOpacity>
 
               <Text style={styles.subTitle}>Posted</Text>
               <Text style={styles.description}>{formatDistanceToNow(new Date(task.createdAt), { addSuffix: true })}</Text>
@@ -212,6 +247,18 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: moderateScale(16, 0.2),
     color: colors.text.red,
+  },
+  mapViewContainer: {
+    width: '100%',
+    backgroundColor: colors.component.bg,
+    borderWidth: 2,
+    borderColor: colors.component.stroke,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  resizeIcon: {
+    alignSelf: 'center',
+    marginTop: hp('1%'),
   },
   userCard: {
     flexDirection: 'row',

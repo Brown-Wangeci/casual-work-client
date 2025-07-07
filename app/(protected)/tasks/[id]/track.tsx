@@ -21,6 +21,7 @@ import { useTempUserStore } from '@/stores/tempUserStore'
 import { useTasksStore } from '@/stores/tasksStore'
 import Loading from '@/components/common/Loading'
 import { showToast } from '@/lib/utils/showToast'
+import DynamicMapView from '@/components/common/DynamicMapView'
 
 const TaskTrackingScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
@@ -29,7 +30,6 @@ const TaskTrackingScreen = () => {
   const [isApproving, setIsApproving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [task, setTask] = useState<Task | null>(null);
-  const [address, setAddress] = useState('');
   const getTaskById = useTasksStore((state) => state.getCreatedTaskById);
   const cancelTask = useTasksStore((state) => state.cancelTask);
   const isCancelling = useTasksStore((state) => state.isCancelling);
@@ -46,6 +46,9 @@ const TaskTrackingScreen = () => {
     if (!force) {
       const cachedTask = getTaskById(id as string);
       if (cachedTask) {
+        cachedTask.location = cachedTask.location || '';
+        cachedTask.longitude = cachedTask.longitude || 0;
+        cachedTask.latitude = cachedTask.latitude ||0;
         setTask(cachedTask);
         setProgress(calculateProgress(cachedTask.status));
         setLoading(false);
@@ -59,6 +62,9 @@ const TaskTrackingScreen = () => {
         throw new Error('Unexpected response format: task not found.');
       }
       const taskData = response.data.task;
+      taskData.location = 'Nairobi, Kenya';
+      taskData.latitude = -1.2921;
+      taskData.longitude = 36.8219;
       useTasksStore.getState().updateTask(taskData);
       setTask(taskData);
       setProgress(calculateProgress(taskData.status));
@@ -161,9 +167,16 @@ const TaskTrackingScreen = () => {
               )}
 
               <Text style={styles.subTitle}>Location</Text>
-              <Text style={styles.description}>{address}</Text>
+              <Text style={styles.description}>{task.location}</Text>
               <View style={[styles.mapViewContainer, { height: mapHeight }]}>
-                <LiveMapView setAddress={setAddress} address={address} />
+                {task.latitude !== null && task.longitude !== null && (
+                  <DynamicMapView
+                    latitude={task.latitude}
+                    longitude={task.longitude}
+                    label={task.location}
+                    style={[{ height: '100%' }, { width: '100%' }]}
+                  />
+                )}
               </View>
               <TouchableOpacity onPress={toggleMapHeight}>
                 <FontAwesome6 name={mapHeight === hp('30%') ? 'expand' : 'compress'} size={24} color={colors.text.bright} style={styles.resizeIcon} />

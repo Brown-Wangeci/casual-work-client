@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Platform, TouchableOpacity, TouchableWithoutFeedback, Keyboard, TurboModuleRegistry } from 'react-native';
+import { StyleSheet, Text, View, Platform, TouchableOpacity, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { moderateScale } from 'react-native-size-matters';
 import { FontAwesome6 } from '@expo/vector-icons';

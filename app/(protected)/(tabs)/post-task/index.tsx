@@ -1,5 +1,4 @@
 import { Keyboard, Platform, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native';
-import { useState } from 'react';
 import ContentWrapper from '@/components/layout/ContentWrapper';
 import CustomHeader from '@/components/layout/CustomHeader';
 import Button from '@/components/ui/Button';
@@ -12,30 +11,28 @@ import ThemedInput from '@/components/ui/ThemedInput';
 import InfoText from '@/components/common/InfoText';
 import TaskCategorySelect from '@/components/screens/post-task/TaskCategorySelect';
 import Hr from '@/components/common/Hr';
-import { TaskInCreation } from '@/constants/Types';
 import ScreenBackground from '@/components/layout/ScreenBackground';
 import api from '@/lib/utils/axios';
 import { extractErrorMessage, logError } from '@/lib/utils';
 import { showToast } from '@/lib/utils/showToast';
 import { useTasksStore } from '@/stores/tasksStore';
+import { useState } from 'react';
+import { useTaskCreationStore } from '@/stores/taskCreationStore';
+import { TouchableOpacity } from 'react-native';
+
+const MAX_DESCRIPTION_LENGTH = 400;
+const MAX_TITLE_LENGTH = 50;
 
 const PostTaskScreen = () => {
-  const [createdTask, setCreatedTask] = useState<TaskInCreation>({
-    title: '',
-    description: '',
-    category: '',
-    location: '',
-    offer: null,
-  });
-
-  const addPostedTask = useTasksStore((state) => state.addCreatedTask);
-  const [loading, setLoading] = useState(false);
-  const MAX_DESCRIPTION_LENGTH = 400;
-  const MAX_TITLE_LENGTH = 50;
   const router = useRouter();
+  const addPostedTask = useTasksStore((state) => state.addCreatedTask);
+  const task = useTaskCreationStore((state) => state.task);
+  const setField = useTaskCreationStore((state) => state.setField);
+  const resetTask = useTaskCreationStore((state) => state.resetTask);
+  const [loading, setLoading] = useState(false);
 
   const handleCreateTask = async () => {
-    const { title, description, category, location, offer } = createdTask;
+    const { title, description, category, location, offer } = task;
 
     if (!title || !description || !location || offer === null) {
       showToast('error', 'Missing fields', 'Please fill in all required fields.');
@@ -59,12 +56,12 @@ const PostTaskScreen = () => {
 
     try {
       setLoading(true);
-
-      const response = await api.post('/tasks', createdTask);
+      const response = await api.post('/tasks', task);
 
       if (response.status === 201 && response.data?.task?.id) {
         const successMessage = response.data.message || 'Task created successfully!';
         addPostedTask(response.data.task);
+        resetTask();
         showToast('success', 'Task Created', successMessage);
         router.push(`/tasks/${response.data.task.id}/confirmation`);
       } else {
@@ -100,11 +97,11 @@ const PostTaskScreen = () => {
                 </InfoText>
                 <ThemedInput
                   placeholder="e.g. Weekly Laundry Service"
-                  value={createdTask.title}
-                  onChangeText={(text) => setCreatedTask((prev) => ({ ...prev, title: text }))}
+                  value={task.title}
+                  onChangeText={(text) => setField('title', text)}
                   maxLength={MAX_TITLE_LENGTH}
                 />
-                <Text style={styles.textCount}>{createdTask.title.length} / {MAX_TITLE_LENGTH}</Text>
+                <Text style={styles.textCount}>{task.title.length} / {MAX_TITLE_LENGTH}</Text>
               </View>
 
               <View style={styles.inputBlock}>
@@ -117,28 +114,32 @@ const PostTaskScreen = () => {
                   numberOfLines={6}
                   style={{ minHeight: 120, textAlignVertical: 'top' }}
                   maxLength={MAX_DESCRIPTION_LENGTH}
-                  value={createdTask.description}
-                  onChangeText={(text) => setCreatedTask((prev) => ({ ...prev, description: text }))}
+                  value={task.description}
+                  onChangeText={(text) => setField('description', text)}
                   placeholder="Describe the task in detail"
                 />
-                <Text style={styles.textCount}>{createdTask.description.length} / {MAX_DESCRIPTION_LENGTH}</Text>
+                <Text style={styles.textCount}>{task.description.length} / {MAX_DESCRIPTION_LENGTH}</Text>
               </View>
 
               <View style={styles.inputBlock}>
                 <Text style={styles.inputLabel}>Category</Text>
                 <TaskCategorySelect
-                  onValueChange={(value) => setCreatedTask((prev) => ({ ...prev, category: value }))}
-                  categoryValue={createdTask.category}
+                  onValueChange={(value) => setField('category', value)}
+                  categoryValue={task.category}
                 />
               </View>
 
               <View style={styles.inputBlock}>
                 <Text style={styles.inputLabel}>Location</Text>
-                <ThemedInput
-                  placeholder="Your Address"
-                  value={createdTask.location}
-                  onChangeText={(text) => setCreatedTask((prev) => ({ ...prev, location: text }))}
-                />
+                <TouchableOpacity
+                    style={styles.locationInput}
+                    onPress={() => router.push('/post-task/LocationPickerScreen')}
+                    activeOpacity={0.7}
+                >
+                    <Text style={task.location ? styles.locationText : styles.placeholderText}>
+                    {task.location || 'Select Location on Map'}
+                    </Text>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -151,10 +152,10 @@ const PostTaskScreen = () => {
                 <ThemedInput
                   placeholder="Ksh. 100"
                   keyboardType="numeric"
-                  value={createdTask.offer !== null ? createdTask.offer.toString() : ''}
+                  value={task.offer !== null ? task.offer.toString() : ''}
                   onChangeText={(text) => {
                     const numericValue = parseFloat(text.replace(/[^0-9.]/g, ''));
-                    setCreatedTask((prev) => ({ ...prev, offer: isNaN(numericValue) ? null : numericValue }));
+                    setField('offer', isNaN(numericValue) ? null : numericValue);
                   }}
                 />
               </View>
@@ -217,4 +218,26 @@ const styles = StyleSheet.create({
     marginTop: hp('0.5%'),
     marginBottom: hp('-2%'),
   },
+  locationInput: {
+    backgroundColor: colors.component.input,
+    borderRadius: 10,
+    borderColor: colors.component.stroke,
+    borderWidth: 1,
+    paddingVertical: hp('1.4%'),
+    paddingHorizontal: wp('4%'),
+    justifyContent: 'center',
+    },
+
+    placeholderText: {
+    color: colors.text.placeholder,
+    fontFamily: 'poppins-regular',
+    fontSize: moderateScale(14, 0.2),
+    },
+
+    locationText: {
+    color: colors.text.bright,
+    fontFamily: 'poppins-regular',
+    fontSize: moderateScale(14, 0.2),
+    },
+
 });

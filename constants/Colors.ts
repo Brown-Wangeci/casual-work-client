@@ -5,6 +5,8 @@
 
 const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
+const backgroundColor = '#000101';
+const inputBackgroundColor = '#111111';
 
 
 // Objective: Define the colors used in the application
@@ -12,8 +14,8 @@ const tintColorDark = '#fff';
 const colors = {
     component: {
         stroke: '#464C55',
-        bg: '#171717',
-        input: 'rgba(70, 76, 85, 0.2)',
+        bg: backgroundColor,
+        input: inputBackgroundColor,
         green: {
             bg: 'rgba(76, 175, 80, 0.2)',
             text: '#FFFFFF',
@@ -26,12 +28,12 @@ const colors = {
             stroke: '#D9D9D9',
         },
         secondary: {
-            bg: '#171717',
+            bg: backgroundColor,
             text: '#D9D9D9',
             stroke: '#D9D9D9',
         },
         cancel: {
-            bg: '#171717',
+            bg: backgroundColor,
             text: '#FF0000',
             stroke: '#FF0000',
         },
@@ -68,7 +70,7 @@ const colors = {
         empty: '#464C55',
     },
     transparent: 'transparent',
-    bg: '#171717',
+    bg: backgroundColor,
     tint: tintColorLight,
     tabIconDefault: '#E5E4E2',
     tabIconSelected: '#FFFFFF',

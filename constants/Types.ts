@@ -6,6 +6,8 @@ type Task = {
   description: string;
   category: string;
   location: string;
+  latitude: number | null; // Nullable for tasks without a specific location
+  longitude: number | null; // Nullable for tasks without a specific location
   offer: number;
   status: Status;
   taskPoster: User; // User ID or username of the task poster
@@ -69,7 +71,9 @@ type TaskInCreation = {
   description: string;
   category: string;
   location: string;
-  offer: number | null; // Offer can be null initially
+  offer: number | null;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 type CategoryOption = {

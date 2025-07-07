@@ -4,7 +4,6 @@ import { Image } from 'expo-image';
 import colors from '@/constants/Colors';
 import { moderateScale } from 'react-native-size-matters';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import LiveMapView from '@/components/screens/task-track/LiveMapView';
 import ProgressBar from '@/components/ui/ProgressBar';
 import StarRating from '@/components/common/StarRating';
 import Button from '@/components/ui/Button';
@@ -20,6 +19,7 @@ import { useTempUserStore } from '@/stores/tempUserStore';
 import { useTasksStore } from '@/stores/tasksStore';
 import Loading from '@/components/common/Loading';
 import { showToast } from '@/lib/utils/showToast';
+import DynamicMapView from '@/components/common/DynamicMapView';
 
 const UpdateTaskProgressScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
@@ -28,7 +28,6 @@ const UpdateTaskProgressScreen = () => {
   const [isCompleting, setIsCompleting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [task, setTask] = useState<any | null>(null);
-  const [address, setAddress] = useState('');
   const getTaskById = useTasksStore((state) => state.getAssignedTaskById);
   const router = useRouter();
   const [mapHeight, setMapHeight] = useState(hp('30%'));
@@ -51,6 +50,11 @@ const UpdateTaskProgressScreen = () => {
       const response = await api.get(`/tasks/${id}`);
       const taskData = response.data?.task;
       if (!taskData) throw new Error('Task not found.');
+
+      taskData.location = taskData.location || 'Nairobi, Kenya';
+      taskData.latitude = taskData.latitude || -1.2921;
+      taskData.longitude = taskData.longitude || 36.8219;
+
       useTasksStore.getState().updateTask(taskData);
       setTask(taskData);
       setProgress(calculateProgress(taskData.status));
@@ -139,9 +143,14 @@ const UpdateTaskProgressScreen = () => {
                 <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>No progress data available.</Text>
               )}
               <Text style={styles.subTitle}>Location</Text>
-              <Text style={styles.description}>{address}</Text>
-              <View style={[styles.mapViewContainer, { height: mapHeight }]}>
-                <LiveMapView setAddress={setAddress} address={address} />
+              <Text style={styles.description}>{task.location}</Text>
+              <View style={[styles.mapViewContainer, { height: mapHeight }]}> 
+                <DynamicMapView
+                  latitude={task.latitude}
+                  longitude={task.longitude}
+                  label={task.location}
+                  style={[{ height: '100%' }, { width: '100%' }]}
+                />
               </View>
               <TouchableOpacity onPress={toggleMapHeight}>
                 <FontAwesome6 name={mapHeight === hp('30%') ? 'expand' : 'compress'} size={24} color={colors.text.bright} style={styles.resizeIcon} />
