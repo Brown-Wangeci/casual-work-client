@@ -23,6 +23,7 @@ const TaskCategorySelect = ({ onValueChange, categoryValue }: TaskCategorySelect
     { label: 'Cleaning & House Help', value: 'cleaning' },
     { label: 'Tech Help', value: 'tech' },
     { label: 'Event Assistance', value: 'events' },
+    { label: 'Furniture', value: 'furniture' },
     { label: 'Other', value: 'other' },
   ];
 

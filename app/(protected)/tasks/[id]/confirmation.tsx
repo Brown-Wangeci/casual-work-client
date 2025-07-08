@@ -53,7 +53,7 @@ const TaskConfirmationScreen = () => {
 
       if (response.status === 202 && response.data?.task) {
         updateTask(response.data.task);
-        showToast('success', 'Payment Prompt Sent', response.data.message);
+        showToast('success', 'Confirmed', response.data.message);
         await refreshUser();
         router.push('/');
       } else {

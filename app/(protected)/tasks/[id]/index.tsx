@@ -162,11 +162,11 @@ const TaskDetailsScreen = () => {
                 <>
                   <Text style={styles.subTitle}>Payment Confirmation</Text>
                   <Text style={styles.paymentStatusText}>
-                    {!task.paymentStatus && 'Payment status not available.'}
-                    {task.paymentStatus === 'UNCONFIRMED' && 'No confirmation from either party.'}
-                    {task.paymentStatus === 'POSTER_CONFIRMED' && 'Payment confirmed by task poster only.'}
-                    {task.paymentStatus === 'CONFIRMED' && 'Payment to tasker has been confirmed.'}
-                    {task.paymentStatus === 'CONFLICT' && 'Conflict: Poster confirmed payment, but tasker disagreed.'}
+                    {!task.taskPayment && 'Payment status not available.'}
+                    {task.taskPayment === 'UNCONFIRMED' && 'No confirmation from either party.'}
+                    {task.taskPayment === 'POSTER_CONFIRMED' && 'Payment confirmed by task poster only.'}
+                    {task.taskPayment === 'CONFIRMED' && 'Payment to tasker has been confirmed.'}
+                    {task.taskPayment === 'CONFLICT' && 'Conflict: Poster confirmed payment, but tasker disagreed.'}
                   </Text>
                 </>
               )}

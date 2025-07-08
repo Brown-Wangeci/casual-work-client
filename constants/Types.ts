@@ -16,7 +16,7 @@ type Task = {
   taskerAssigned: User | null;
   taskerRated: boolean;
   taskPosterRated: boolean;
-  paymentStatus: PaymentStatus;
+  taskPayment: PaymentStatus;
   createdAt: Date;
   updatedAt: Date;
 };
