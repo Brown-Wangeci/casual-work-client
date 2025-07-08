@@ -77,7 +77,6 @@ const SignUp = () => {
       if (res.status === 201 && res.data?.result?.user && res.data?.result?.token) {
         const { user, token } = res.data.result;
         useAuthStore.getState().login(user, token);
-        router.replace('/');
         showToast('success', res.data.message || 'Sign up successful');
       } else {
         logError(res, 'Unexpected signup response');

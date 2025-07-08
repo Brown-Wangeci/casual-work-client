@@ -43,7 +43,6 @@ const Login = () => {
       if (res.status === 200 && res.data?.user && res.data?.token) {
         useAuthStore.getState().login(res.data.user, res.data.token);
         showToast('success', res.data.message || `Log in successful`);
-        router.replace('/');
       } else {
         logError(res, 'Unexpected login response');
         showToast('error', 'Unexpected error. Please try again.');
