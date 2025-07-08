@@ -23,12 +23,12 @@ const DynamicMapView = ({
   }
 
   const cameraPosition = {
-    center: { latitude, longitude },
+    coordinates: { latitude, longitude },
     zoom: 14,
   };
 
   const marker = {
-    coordinate: { latitude, longitude },
+    coordinates: { latitude, longitude },
     title: label,
   };
 
@@ -44,7 +44,7 @@ const DynamicMapView = ({
     return (
       <GoogleMaps.View
         style={style}
-        cameraPosition={cameraPosition}
+        cameraPosition={cameraPosition} 
         markers={[marker]}
       />
     );

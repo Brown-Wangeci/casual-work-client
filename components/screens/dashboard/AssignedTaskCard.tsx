@@ -51,7 +51,9 @@ const AssignedTaskCard = ({ task }: AssignedTaskCardProps) => {
         <View>
           { task.status === 'IN_PROGRESS' ? (
             <Button title="Manage Task" type="primary" small onPress={() => router.push(`/tasks/${task.id}/update-task-progress`)} />
-          ) : (
+          ) : task.status === 'COMPLETED' && task.taskerRated === false ? (
+            <Button title="Rate Task-Poster" type="primary" small onPress={()=>{ router.push(`/tasks/${task.id}/rate`) }} />
+          ) : (    
             <Button title="View Task" type="primary" small onPress={() => router.push(`/tasks/${task.id}`)} />
           )}
         </View>

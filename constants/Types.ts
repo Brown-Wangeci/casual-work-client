@@ -1,4 +1,5 @@
 type Status = 'CREATED' | 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REVIEW' | 'CANCELLED';
+type PaymentStatus = 'UNCONFIRMED' | 'POSTER_CONFIRMED' | 'CONFIRMED' | 'CONFLICT';
 
 type Task = {
   id: string;
@@ -6,13 +7,16 @@ type Task = {
   description: string;
   category: string;
   location: string;
-  latitude: number | null; // Nullable for tasks without a specific location
-  longitude: number | null; // Nullable for tasks without a specific location
+  latitude: number | null;
+  longitude: number | null;
   offer: number;
   status: Status;
-  taskPoster: User; // User ID or username of the task poster
-  taskersApplied: User[] | null; // Array of user IDs or usernames
-  taskerAssigned: User | null; // User ID or username of the assigned tasker
+  taskPoster: User;
+  taskersApplied: User[] | null;
+  taskerAssigned: User | null;
+  taskerRated: boolean;
+  taskPosterRated: boolean;
+  paymentStatus: PaymentStatus;
   createdAt: Date;
   updatedAt: Date;
 };

@@ -21,15 +21,16 @@ import { useTasksStore } from '@/stores/tasksStore';
 import ProgressBar from '@/components/ui/ProgressBar';
 import { AxiosError } from 'axios';
 import DynamicMapView from '@/components/common/DynamicMapView';
-import { FontAwesome6 } from '@expo/vector-icons';
+import { FontAwesome6, Ionicons } from '@expo/vector-icons';
+import { showToast } from '@/lib/utils/showToast';
 
 const TaskDetailsScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [task, setTask] = useState<Task | null>(null);
   const [progress, setProgress] = useState<number | null>(null);
   const [mapHeight, setMapHeight] = useState(hp('30%'));
+  const [isMapInteracting, setIsMapInteracting] = useState(false);
 
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -37,7 +38,6 @@ const TaskDetailsScreen = () => {
 
   const fetchTaskDetails = async (force = false) => {
     if (!force) setLoading(true);
-    setError(null);
 
     if (!force) {
       const cachedTask = getTaskById(id);
@@ -60,8 +60,7 @@ const TaskDetailsScreen = () => {
       setProgress(calculateProgress(taskData.status));
     } catch (error: unknown) {
       logError(error, 'fetchTaskDetails');
-      const message = extractErrorMessage(error as AxiosError);
-      setError(message || 'Failed to load task details. Please try again later.');
+      showToast('error', 'Failed to fetch task', extractErrorMessage(error as AxiosError));
     } finally {
       setLoading(false);
     }
@@ -109,14 +108,13 @@ const TaskDetailsScreen = () => {
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        scrollEnabled={!isMapInteracting}
       >
         <ContentWrapper>
           {loading && !refreshing ? (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
               <Loading message="Loading Task Details..." />
             </View>
-          ) : error ? (
-            <Text style={styles.errorText}>Error: {error}</Text>
           ) : task ? (
             <>
               <Text style={styles.title}>{task.title}</Text>
@@ -140,7 +138,12 @@ const TaskDetailsScreen = () => {
 
               <Text style={styles.subTitle}>Location</Text>
               <Text style={styles.description}>{mapData.label}</Text>
-              <View style={[styles.mapViewContainer, { height: mapHeight }]}> 
+              <View
+                style={[styles.mapViewContainer, { height: mapHeight }]}
+                onTouchStart={() => setIsMapInteracting(true)}
+                onTouchEnd={() => setIsMapInteracting(false)}
+                onTouchCancel={() => setIsMapInteracting(false)}
+              >
                 <DynamicMapView
                   latitude={mapData.latitude}
                   longitude={mapData.longitude}
@@ -155,6 +158,19 @@ const TaskDetailsScreen = () => {
               <Text style={styles.subTitle}>Posted</Text>
               <Text style={styles.description}>{formatDistanceToNow(new Date(task.createdAt), { addSuffix: true })}</Text>
 
+              {task.status === 'COMPLETED' && (
+                <>
+                  <Text style={styles.subTitle}>Payment Confirmation</Text>
+                  <Text style={styles.paymentStatusText}>
+                    {!task.paymentStatus && 'Payment status not available.'}
+                    {task.paymentStatus === 'UNCONFIRMED' && 'No confirmation from either party.'}
+                    {task.paymentStatus === 'POSTER_CONFIRMED' && 'Payment confirmed by task poster only.'}
+                    {task.paymentStatus === 'CONFIRMED' && 'Payment to tasker has been confirmed.'}
+                    {task.paymentStatus === 'CONFLICT' && 'Conflict: Poster confirmed payment, but tasker disagreed.'}
+                  </Text>
+                </>
+              )}
+
               <Text style={styles.subTitle}>Task Poster</Text>
               <UserCard user={task.taskPoster} onContact={onContactUser} />
 
@@ -166,7 +182,13 @@ const TaskDetailsScreen = () => {
               )}
             </>
           ) : (
-            <Text style={styles.description}>No task details available.</Text>
+            <View style={styles.emptyContainer}>
+              <Text style={styles.description}>No task details available.</Text>
+              <TouchableOpacity onPress={onRefresh} style={styles.retryButton}>
+                <Ionicons name="refresh" size={24} color={colors.text.green} />
+                <Text style={styles.retryText}>Tap to retry</Text>
+              </TouchableOpacity>
+            </View>
           )}
         </ContentWrapper>
       </ScrollView>
@@ -244,10 +266,6 @@ const styles = StyleSheet.create({
     fontFamily: 'poppins-medium',
     color: colors.text.light,
   },
-  errorText: {
-    fontSize: moderateScale(16, 0.2),
-    color: colors.text.red,
-  },
   mapViewContainer: {
     width: '100%',
     backgroundColor: colors.component.bg,
@@ -287,5 +305,32 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginLeft: 'auto',
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: hp('2%'),
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: hp('1%'),
+    paddingHorizontal: hp('2%'),
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.text.green,
+  },
+  retryText: {
+    color: colors.text.green,
+    fontFamily: 'poppins-medium',
+    fontSize: moderateScale(14, 0.2),
+    marginLeft: 8,
+  },
+  paymentStatusText: {
+    fontSize: moderateScale(14, 0.2),
+    fontFamily: 'poppins-regular',
+    color: colors.text.light,
+    marginTop: hp('0.5%'),
   },
 });

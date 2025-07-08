@@ -141,10 +141,10 @@ const Login = () => {
             </InfoText>
 
             <Button title='LOGIN' type="primary" onPress={onLogin} loading={loading} />
-            <Text style={styles.optionText}>Or Sign In with</Text>
+            {/* <Text style={styles.optionText}>Or Sign In with</Text>
             <TouchableOpacity style={styles.googleIconContainer} onPress={onLoginWithGoogle} disabled={loading}>
               <FontAwesome6 name="google" size={36} color={colors.text.bright} />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </ContentWrapper>
         </KeyboardAwareScrollView>
       </TouchableWithoutFeedback>

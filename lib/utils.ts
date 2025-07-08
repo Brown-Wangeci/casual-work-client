@@ -83,7 +83,7 @@ export const validateToken = async (token: string) => {
     return { isValid: response.status === 200, user: response.data.user };
   } catch {
     console.error('Token validation failed');
-    return false;
+    return null;
   }
 };
 

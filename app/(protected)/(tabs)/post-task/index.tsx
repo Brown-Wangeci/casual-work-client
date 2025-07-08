@@ -34,7 +34,7 @@ const PostTaskScreen = () => {
   const handleCreateTask = async () => {
     const { title, description, category, location, offer } = task;
 
-    if (!title || !description || !location || offer === null) {
+    if (!title || !description || !location || offer === null || !category) {
       showToast('error', 'Missing fields', 'Please fill in all required fields.');
       return;
     }
@@ -137,7 +137,7 @@ const PostTaskScreen = () => {
                     activeOpacity={0.7}
                 >
                     <Text style={task.location ? styles.locationText : styles.placeholderText}>
-                    {task.location || 'Select Location on Map'}
+                    {task.location || 'Select Location'}
                     </Text>
                 </TouchableOpacity>
               </View>

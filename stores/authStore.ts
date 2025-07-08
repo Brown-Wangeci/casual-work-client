@@ -74,13 +74,27 @@ export const useAuthStore = create<AuthState>()(
         try {
           const storedToken = await SecureStore.getItemAsync('auth-token');
           if (storedToken) {
-            const isValid = await validateToken(storedToken);
+            const data = await validateToken(storedToken);
+            if (!data) {
+              console.warn('Token validation failed, logging out.');
+              await get().logout();
+              return;
+            }
+
+            const { isValid, user } = data;
+
             if (!isValid) {
               console.warn('Stored token is invalid, logging out.');
               await get().logout();
               return;
             }
             set({ token: storedToken, isAuthenticated: true });
+            if (user) {
+              set({ user });
+              console.info('User loaded from token:', user.username || 'Unknown User');
+            } else {
+              console.warn('No user data found in token validation response.');
+            }
           } else {
             set({ user: null, isAuthenticated: false, token: null });
           }

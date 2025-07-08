@@ -160,10 +160,10 @@ const SignUp = () => {
             <InfoText style={{ marginBottom: hp('4%'), width: '100%' }}>Already have an account? <Text style={{ color: colors.text.light }} onPress={() => { router.push('/login'); }}>Login</Text></InfoText>
 
             <Button title="CREATE ACCOUNT" type='primary' onPress={handleSignUp} loading={loading} />
-            <Text style={styles.optionText}>Or Sign Up with</Text>
+            {/* <Text style={styles.optionText}>Or Sign Up with</Text>
             <TouchableOpacity style={[styles.googleIconContainer, loading && { opacity: 0.5 }]} onPress={onSignUpWithGoogle} disabled={loading}>
               <FontAwesome6 name="google" size={36} color={colors.text.bright} />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </ContentWrapper>
         </KeyboardAwareScrollView>
       </TouchableWithoutFeedback>

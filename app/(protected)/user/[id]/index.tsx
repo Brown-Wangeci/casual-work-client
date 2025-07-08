@@ -44,7 +44,7 @@ const UserProfileScreen = () => {
     else setRefreshing(true);
 
     try {
-      const response = await api.get(`/users/${id}`);
+      const response = await api.get(`/user/${id}`);// change to to /users/${id} later
       setUserData(response.data.user);
     } catch (error) {
       logError(error, 'UserProfileScreen > fetchUserData');

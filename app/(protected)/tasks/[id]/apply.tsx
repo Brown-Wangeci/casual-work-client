@@ -23,14 +23,15 @@ import { useAuthStore } from '@/stores/authStore';
 import { useTasksStore } from '@/stores/tasksStore';
 import { showToast } from '@/lib/utils/showToast';
 import DynamicMapView from '@/components/common/DynamicMapView';
+import { Ionicons } from '@expo/vector-icons';
 
 const TaskApplicationScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isApplying, setIsApplying] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [task, setTask] = useState<Task | null>(null);
   const [mapHeight, setMapHeight] = useState(hp('30%'));
+  const [isMapInteracting, setIsMapInteracting] = useState(false);
 
   const updateTask = useTaskFeedStore((state) => state.updateTask);
   const addTaskApplication = useTasksStore((state) => state.addTaskApplication);
@@ -45,8 +46,6 @@ const TaskApplicationScreen = () => {
   };
 
   const fetchTaskDetails = async (force = false) => {
-    setError(null);
-
     if (!force) {
       const cachedTask = getTaskById(id as string);
       if (cachedTask) {
@@ -65,7 +64,6 @@ const TaskApplicationScreen = () => {
     } catch (error) {
       logError(error, 'fetchTaskDetails');
       const message = extractErrorMessage(error);
-      setError(message);
       showToast('error', 'Failed to load task', message);
     } finally {
       setLoading(false);
@@ -74,7 +72,7 @@ const TaskApplicationScreen = () => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchTaskDetails(true); 
+    await fetchTaskDetails(true);
     setRefreshing(false);
   };
 
@@ -138,7 +136,6 @@ const TaskApplicationScreen = () => {
 
   const user = useAuthStore.getState().user;
   const status = user && id ? getApplicationStatus(id as string, user.id) : null;
-  console.log('Application status:', status);
 
   const dummyNairobi = {
     latitude: -1.286389,
@@ -152,14 +149,13 @@ const TaskApplicationScreen = () => {
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        scrollEnabled={!isMapInteracting}
       >
         <ContentWrapper>
           {loading ? (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
               <Loading message='Loading task details...' />
             </View>
-          ) : error ? (
-            <Text style={styles.errorText}>Error: {error}</Text>
           ) : task ? (
             <>
               <Text style={styles.title}>{task.title}</Text>
@@ -173,7 +169,12 @@ const TaskApplicationScreen = () => {
 
               <Text style={styles.subTitle}>Location</Text>
               <Text style={styles.description}>{task.location || dummyNairobi.label}</Text>
-              <View style={[styles.mapViewContainer, { height: mapHeight }]}> 
+              <View
+                style={[styles.mapViewContainer, { height: mapHeight }]}
+                onTouchStart={() => setIsMapInteracting(true)}
+                onTouchEnd={() => setIsMapInteracting(false)}
+                onTouchCancel={() => setIsMapInteracting(false)}
+              > 
                 <DynamicMapView
                   latitude={task.latitude || dummyNairobi.latitude}
                   longitude={task.longitude || dummyNairobi.longitude}
@@ -218,7 +219,13 @@ const TaskApplicationScreen = () => {
               </View>
             </>
           ) : (
-            <Text style={styles.description}>No task details available.</Text>
+            <View style={styles.emptyContainer}>
+              <Text style={styles.description}>No task details available.</Text>
+              <TouchableOpacity onPress={onRefresh} style={styles.retryButton}>
+                <Ionicons name="refresh" size={24} color={colors.text.green} />
+                <Text style={styles.retryText}>Tap to retry</Text>
+              </TouchableOpacity>
+            </View>
           )}
         </ContentWrapper>
       </ScrollView>
@@ -262,10 +269,6 @@ const styles = StyleSheet.create({
     color: colors.text.light,
     fontSize: moderateScale(14, 0.2),
     fontFamily: 'poppins-regular',
-  },
-  errorText: {
-    fontSize: moderateScale(16, 0.2),
-    color: colors.text.red,
   },
   mapViewContainer: {
     width: '100%',
@@ -324,5 +327,26 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(14, 0.2),
     fontFamily: 'poppins-medium',
     color: colors.text.red,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: hp('2%'),
+    marginTop: hp('10%'),
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: hp('1%'),
+    paddingHorizontal: hp('2%'),
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.text.green,
+  },
+  retryText: {
+    color: colors.text.green,
+    fontFamily: 'poppins-medium',
+    fontSize: moderateScale(14, 0.2),
+    marginLeft: 8,
   },
 });

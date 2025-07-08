@@ -1,4 +1,6 @@
 import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import CustomHeader from '@/components/layout/CustomHeader';
 import ContentWrapper from '@/components/layout/ContentWrapper';
@@ -56,18 +58,28 @@ const TaskFeedScreen = () => {
           <View style={styles.center}>
             <Loading message="Loading task feed..." />
           </View>
-        ) : tasks && tasks.length > 0 ? (
+        ) : (
           <FlatList
             data={tasks}
             renderItem={({ item }) => <TaskFeedCard task={item} />}
             keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={{ gap: moderateScale(20, 0.2) }}
+            contentContainerStyle={[
+              { gap: moderateScale(20, 0.2) },
+              (!tasks || tasks.length === 0) && styles.center,
+            ]}
             refreshing={isRefreshing}
             onRefresh={onRefresh}
             showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.noTasks}>No tasks available!!</Text>
+                <TouchableOpacity onPress={onRefresh} style={styles.retryButton}>
+                  <Ionicons name="refresh" size={24} color={colors.text.green} />
+                  <Text style={styles.retryText}>Tap to retry</Text>
+                </TouchableOpacity>
+              </View>
+            }
           />
-        ) : (
-          <Text style={styles.noTasks}>No tasks available</Text>
         )}
       </ContentWrapper>
     </ScreenBackground>
@@ -91,6 +103,26 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(16),
     color: colors.text.light,
     textAlign: 'center',
-    marginTop: hp('5%'),
   },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: hp('2%'),
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: hp('1%'),
+    paddingHorizontal: hp('2%'),
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.text.green,
+  },
+  retryText: {
+    color: colors.text.green,
+    fontFamily: 'poppins-medium',
+    fontSize: moderateScale(14, 0.2),
+    marginLeft: 8,
+  },
+
 });

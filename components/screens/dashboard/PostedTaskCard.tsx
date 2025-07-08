@@ -60,6 +60,8 @@ const PostedTaskCard = ({ task }: PostedTaskCardProps) => {
             <Button title="Confirm Task" type="primary" small onPress={()=>{ router.push(`/tasks/${task.id}/confirmation`) }} /> 
           ) : task.status === 'REVIEW' ? (
             <Button title="Approve" type="primary" small onPress={()=>{ router.push(`/tasks/${task.id}/track`) }} /> 
+          ) : task.status === 'COMPLETED' && task.taskPosterRated === false ? (
+            <Button title="Rate Tasker" type="primary" small onPress={()=>{ router.push(`/tasks/${task.id}/rate`) }} /> 
           ) : task.status === 'PENDING' ? (
             null
           ) : (

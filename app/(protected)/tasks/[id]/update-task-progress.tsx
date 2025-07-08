@@ -9,7 +9,7 @@ import StarRating from '@/components/common/StarRating';
 import Button from '@/components/ui/Button';
 import ContentWrapper from '@/components/layout/ContentWrapper';
 import Tag from '@/components/screens/task-track/Tag';
-import { FontAwesome6 } from '@expo/vector-icons';
+import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 import CustomHeader from '@/components/layout/CustomHeader';
 import { calculateProgress, extractErrorMessage, formatStatus, logError } from '@/lib/utils';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -25,22 +25,30 @@ const UpdateTaskProgressScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [isCompleting, setIsCompleting] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
   const [task, setTask] = useState<any | null>(null);
   const getTaskById = useTasksStore((state) => state.getAssignedTaskById);
   const router = useRouter();
   const [mapHeight, setMapHeight] = useState(hp('30%'));
   const { id } = useLocalSearchParams();
+  const [isCompleting, setIsCompleting] = useState<boolean>(false);
+  const [isMapInteracting, setIsMapInteracting] = useState(false);
 
   const toggleMapHeight = () => {
     setMapHeight(prev => (prev === hp('30%') ? hp('70%') : hp('30%')));
   };
 
+  const dummyLocation = {
+    latitude: -1.2921,
+    longitude: 36.8219,
+    label: 'Nairobi, Kenya',
+  };
+
   const fetchTaskDetails = async (force = false) => {
-    setError(null);
     const cachedTask = getTaskById(id as string);
     if (cachedTask && !force) {
+      cachedTask.location = cachedTask.location || dummyLocation.label;
+      cachedTask.latitude = cachedTask.latitude || dummyLocation.latitude;
+      cachedTask.longitude = cachedTask.longitude || dummyLocation.longitude;
       setTask(cachedTask);
       setProgress(calculateProgress(cachedTask.status));
       setLoading(false);
@@ -51,16 +59,17 @@ const UpdateTaskProgressScreen = () => {
       const taskData = response.data?.task;
       if (!taskData) throw new Error('Task not found.');
 
-      taskData.location = taskData.location || 'Nairobi, Kenya';
-      taskData.latitude = taskData.latitude || -1.2921;
-      taskData.longitude = taskData.longitude || 36.8219;
+      taskData.location = taskData.location || dummyLocation.label;
+      taskData.latitude = taskData.latitude || dummyLocation.latitude;
+      taskData.longitude = taskData.longitude || dummyLocation.longitude;
 
       useTasksStore.getState().updateTask(taskData);
       setTask(taskData);
       setProgress(calculateProgress(taskData.status));
     } catch (error) {
       logError(error, 'fetchTaskDetails');
-      setError(extractErrorMessage(error));
+      const message = extractErrorMessage(error);
+      showToast('error', 'Failed to load task', message);
     } finally {
       setLoading(false);
     }
@@ -96,7 +105,7 @@ const UpdateTaskProgressScreen = () => {
         setTask(updatedTask);
         setProgress(calculateProgress(updatedTask.status));
         showToast('success', 'Task Marked as Complete', response.data.message || 'Awaiting approval.');
-        router.push('/');
+        // router.push('/');
       } else {
         showToast('error', 'Completion Failed', 'Unexpected server response. Please try again.');
       }
@@ -114,14 +123,13 @@ const UpdateTaskProgressScreen = () => {
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        scrollEnabled={!isMapInteracting}
       >
         <ContentWrapper>
           {loading ? (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
               <Loading message='Loading task tracking' />
             </View>
-          ) : error ? (
-            <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.red }}>Error: {error}</Text>
           ) : task ? (
             <>
               <Text style={styles.title}>{task.title}</Text>
@@ -144,7 +152,12 @@ const UpdateTaskProgressScreen = () => {
               )}
               <Text style={styles.subTitle}>Location</Text>
               <Text style={styles.description}>{task.location}</Text>
-              <View style={[styles.mapViewContainer, { height: mapHeight }]}> 
+              <View
+                style={[styles.mapViewContainer, { height: mapHeight }]}
+                onTouchStart={() => setIsMapInteracting(true)}
+                onTouchEnd={() => setIsMapInteracting(false)}
+                onTouchCancel={() => setIsMapInteracting(false)}
+              > 
                 <DynamicMapView
                   latitude={task.latitude}
                   longitude={task.longitude}
@@ -175,7 +188,13 @@ const UpdateTaskProgressScreen = () => {
               </View>
             </>
           ) : (
-            <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>No task details available.</Text>
+            <View style={styles.emptyContainer}>
+              <Text style={styles.noTask}>No task details found!</Text>
+              <TouchableOpacity onPress={onRefresh} style={styles.retryButton}>
+                <Ionicons name="refresh" size={24} color={colors.text.green} />
+                <Text style={styles.retryText}>Tap to retry</Text>
+              </TouchableOpacity>
+            </View>
           )}
         </ContentWrapper>
       </ScrollView>
@@ -281,5 +300,31 @@ const styles = StyleSheet.create({
   ctaContainer: {
     gap: hp('2%'),
     marginTop: hp('4%'),
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: hp('2%'),
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: hp('1%'),
+    paddingHorizontal: hp('2%'),
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.text.green,
+  },
+  retryText: {
+    color: colors.text.green,
+    fontFamily: 'poppins-medium',
+    fontSize: moderateScale(14, 0.2),
+    marginLeft: 8,
+  },
+  noTask: {
+    fontSize: moderateScale(16),
+    color: colors.text.light,
+    textAlign: 'center',
   },
 });

@@ -29,36 +29,35 @@ const TaskConfirmationScreen = () => {
   const refreshUser = useAuthStore((state => state.refreshUser));
   const task = id ? getPostedTaskById(id as string) : null;
 
-  const [phone, setPhone] = useState<string>('');
+  // const [phone, setPhone] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (task?.taskPoster?.phone) {
-      setPhone(task.taskPoster.phone);
-    }
-  }, [task]);
+  // useEffect(() => {
+  //   if (task?.taskPoster?.phone) {
+  //     setPhone(task.taskPoster.phone);
+  //   }
+  // }, [task]);
 
   const handleConfirmTask = async () => {
     try {
-      const formattedPhone = safeFormatPhoneNumber(phone);
+      // const formattedPhone = safeFormatPhoneNumber(phone);
 
-      if (!formattedPhone) {
-        showToast('error', 'Invalid phone number');
-        return;
-      }
+      // if (!formattedPhone) {
+      //   showToast('error', 'Invalid phone number');
+      //   return;
+      // }
 
       setLoading(true);
 
-      const response = await api.post(`/tasks/${id}/confirm`, {
-        phoneNumber: formattedPhone,
-      });
+      const response = await api.post(`/tasks/${id}/confirm`);
 
       if (response.status === 202 && response.data?.task) {
         updateTask(response.data.task);
         showToast('success', 'Payment Prompt Sent', response.data.message);
-        router.push('/');
         await refreshUser();
+        router.push('/');
       } else {
+        console.log(response)
         showToast('error', 'Unexpected Error', 'Please try again.');
       }
     } catch (error: any) {
@@ -91,7 +90,7 @@ const TaskConfirmationScreen = () => {
     );
   }
 
-  const serviceFee = process.env.EXPO_PUBLIC_SERVICE_FEE ? parseFloat(process.env.EXPO_PUBLIC_SERVICE_FEE) : 2;
+  // const serviceFee = process.env.EXPO_PUBLIC_SERVICE_FEE ? parseFloat(process.env.EXPO_PUBLIC_SERVICE_FEE) : 2;
   const taskPoster = task.taskPoster;
 
   return (
@@ -126,7 +125,7 @@ const TaskConfirmationScreen = () => {
               </View>
             </ContentCard>
 
-            <Text style={styles.title}>Payment Details</Text>
+            {/* <Text style={styles.title}>Payment Details</Text>
             <ContentCard>
               <View style={styles.paymentDetail}>
                 <Text style={styles.paymentText}>Service Fee:</Text>
@@ -153,7 +152,7 @@ const TaskConfirmationScreen = () => {
                 placeholderTextColor={colors.text.placeholder}
                 keyboardType='phone-pad'
               />
-            </View>
+            </View> */}
             <View style={styles.ctaContainer}>
               <Button title="CONFIRM TASK" type='primary' onPress={handleConfirmTask} loading={loading} />
               <Button title="CANCEL TASK" type='cancel' onPress={handleCancelTask} loading={isCancelling} />
@@ -178,8 +177,7 @@ const styles = StyleSheet.create({
     color: colors.text.light,
     fontSize: moderateScale(16, 0.2),
     fontFamily: 'poppins-semi-bold',
-    marginTop: hp('2%'),
-    marginBottom: hp('0.5%'),
+    marginVertical: hp('2%'), 
   },
   textTitle: {
     color: colors.text.light,
@@ -260,6 +258,7 @@ const styles = StyleSheet.create({
     borderLeftColor: colors.component.stroke,
   },
   ctaContainer: {
-    gap: hp('2%'),
+    marginTop: hp('4%'),
+    gap: hp('2.5%'),
   },
 });

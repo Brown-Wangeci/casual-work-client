@@ -29,7 +29,7 @@ const AvatarScreen = () => {
   const fetchUserAvatar = async () => {
     setLoading(true);
     try {
-      const response = await api.get(`/users/${id}`);
+      const response = await api.get(`/user/${id}`);// change to /users/${id} later
       const avatar = response.data.user?.profilePicture || null;
       setUserAvatar(avatar);
     } catch (error) {

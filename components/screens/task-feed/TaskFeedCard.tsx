@@ -37,6 +37,8 @@ const TaskFeedCard = ({ task }: TaskFeedCardProps) => {
     ? formatDistanceToNow(new Date(task.updatedAt), { addSuffix: true })
     : "";
 
+  if (!task) return null;
+
   return (
     <View style={styles.card}>
       <Text style={styles.title}>{truncateText(task.title, 5)}</Text>

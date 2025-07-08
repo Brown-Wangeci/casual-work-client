@@ -1,85 +1,79 @@
-import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { Image } from 'expo-image'
-import colors from '@/constants/Colors'
-import { moderateScale } from 'react-native-size-matters'
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
-import LiveMapView from '@/components/screens/task-track/LiveMapView'
-import ProgressBar from '@/components/ui/ProgressBar'
-import StarRating from '@/components/common/StarRating'
-import Button from '@/components/ui/Button'
-import ContentWrapper from '@/components/layout/ContentWrapper'
-import Tag from '@/components/screens/task-track/Tag'
-import { FontAwesome6 } from '@expo/vector-icons'
-import CustomHeader from '@/components/layout/CustomHeader'
-import { calculateProgress, extractErrorMessage, formatStatus, logError } from '@/lib/utils'
-import { Task } from '@/constants/Types'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import ScreenBackground from '@/components/layout/ScreenBackground'
-import api from '@/lib/utils/axios'
-import { useTempUserStore } from '@/stores/tempUserStore'
-import { useTasksStore } from '@/stores/tasksStore'
-import Loading from '@/components/common/Loading'
-import { showToast } from '@/lib/utils/showToast'
-import DynamicMapView from '@/components/common/DynamicMapView'
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Image } from 'expo-image';
+import colors from '@/constants/Colors';
+import { moderateScale } from 'react-native-size-matters';
+import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import ProgressBar from '@/components/ui/ProgressBar';
+import StarRating from '@/components/common/StarRating';
+import Button from '@/components/ui/Button';
+import ContentWrapper from '@/components/layout/ContentWrapper';
+import Tag from '@/components/screens/task-track/Tag';
+import { FontAwesome6, Ionicons } from '@expo/vector-icons';
+import CustomHeader from '@/components/layout/CustomHeader';
+import { calculateProgress, extractErrorMessage, formatStatus, logError } from '@/lib/utils';
+import { Task } from '@/constants/Types';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import ScreenBackground from '@/components/layout/ScreenBackground';
+import api from '@/lib/utils/axios';
+import { useTempUserStore } from '@/stores/tempUserStore';
+import { useTasksStore } from '@/stores/tasksStore';
+import Loading from '@/components/common/Loading';
+import { showToast } from '@/lib/utils/showToast';
+import DynamicMapView from '@/components/common/DynamicMapView';
 
 const TaskTrackingScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isApproving, setIsApproving] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
   const [task, setTask] = useState<Task | null>(null);
   const getTaskById = useTasksStore((state) => state.getCreatedTaskById);
   const cancelTask = useTasksStore((state) => state.cancelTask);
   const isCancelling = useTasksStore((state) => state.isCancelling);
+  const [isMapInteracting, setIsMapInteracting] = useState(false);
   const [mapHeight, setMapHeight] = useState(hp('30%'));
   const router = useRouter();
   const { id } = useLocalSearchParams();
 
   const toggleMapHeight = () => {
-    setMapHeight(prevHeight => (prevHeight === hp('30%') ? hp('70%') : hp('30%')));
+    setMapHeight(prev => (prev === hp('30%') ? hp('70%') : hp('30%')));
+  };
+
+  const dummyLocation = {
+    latitude: -1.309300,
+    longitude: 36.814800,
+    label: 'Nairobi, Kenya',
   };
 
   const fetchTaskDetails = async (force = false) => {
-    setError(null);
     if (!force) {
-      const cachedTask = getTaskById(id as string);
-      if (cachedTask) {
-        cachedTask.location = cachedTask.location || '';
-        cachedTask.longitude = cachedTask.longitude || 0;
-        cachedTask.latitude = cachedTask.latitude ||0;
-        setTask(cachedTask);
-        setProgress(calculateProgress(cachedTask.status));
+      const cached = getTaskById(id as string);
+      if (cached) {
+        cached.location = cached.location || dummyLocation.label;
+        cached.latitude = cached.latitude || dummyLocation.latitude;
+        cached.longitude = cached.longitude || dummyLocation.longitude;
+        setTask(cached);
+        setProgress(calculateProgress(cached.status));
         setLoading(false);
         return;
       }
     }
-
     try {
-      const response = await api.get(`/tasks/${id}`);
-      if (!response.data || !response.data.task) {
-        throw new Error('Unexpected response format: task not found.');
-      }
-      const taskData = response.data.task;
-      taskData.location = 'Nairobi, Kenya';
-      taskData.latitude = -1.2921;
-      taskData.longitude = 36.8219;
-      useTasksStore.getState().updateTask(taskData);
-      setTask(taskData);
-      setProgress(calculateProgress(taskData.status));
-    } catch (error: any) {
-      logError(error, 'fetchTaskDetails');
-      setError(extractErrorMessage(error) || 'Failed to load task details.');
+      const res = await api.get(`/tasks/${id}`);
+      if (!res.data?.task) throw new Error('Task not found');
+      const data = res.data.task;
+      data.location = data.location || dummyLocation.label;
+      data.latitude = data.latitude || dummyLocation.latitude;
+      data.longitude = data.longitude || dummyLocation.longitude;
+      useTasksStore.getState().updateTask(data);
+      setTask(data);
+      setProgress(calculateProgress(data.status));
+    } catch (err) {
+      logError(err, 'fetchTaskDetails');
+      showToast('error', 'Failed to fetch task', extractErrorMessage(err));
     } finally {
       setLoading(false);
-    }
-  };
-
-  const onContactTasker = () => {
-    if (task?.taskerAssigned) {
-      useTempUserStore.getState().setUserProfile(task.taskerAssigned);
-      router.push(`/user/${task.taskerAssigned.id}`);
     }
   };
 
@@ -93,39 +87,38 @@ const TaskTrackingScreen = () => {
     fetchTaskDetails();
   }, [id]);
 
-  const handleApproveTaskCompletion = async () => {
-    if (!task?.id) {
-      showToast('error', 'Missing Task ID', 'Cannot approve without a valid task ID.');
-      return;
+  const onContactTasker = () => {
+    if (task?.taskerAssigned) {
+      useTempUserStore.getState().setUserProfile(task.taskerAssigned);
+      router.push(`/user/${task.taskerAssigned.id}`);
     }
+  };
 
+  const onApprove = async () => {
+    if (!task?.id) return;
     try {
       setIsApproving(true);
-      const response = await api.patch(`/tasks/${task.id}/approve`);
-
-      if (response.status === 202 && response.data?.approvedTask) {
-        const updatedTask = response.data.approvedTask;
-        useTasksStore.getState().updateTask(updatedTask);
-        setTask(updatedTask);
-        setProgress(calculateProgress(updatedTask.status));
-        showToast('success', 'Task Approved', response.data.message || 'Task marked as complete.');
-        router.push(`/tasks/${updatedTask.id}/rate`);
+      const res = await api.patch(`/tasks/${task.id}/approve`);
+      if (res.status === 202 && res.data?.approvedTask) {
+        const updated = res.data.approvedTask;
+        useTasksStore.getState().updateTask(updated);
+        setTask(updated);
+        setProgress(calculateProgress(updated.status));
+        showToast('success', 'Task Approved', res.data.message || 'Approved');
+        router.push(`/tasks/${updated.id}/rate`);
       } else {
-        showToast('error', 'Approval Failed', 'Unexpected server response. Please try again.');
+        showToast('error', 'Unexpected response', 'Please try again.');
       }
-    } catch (error) {
-      logError(error, 'handleApproveTaskCompletion');
-      showToast('error', 'Approval Error', extractErrorMessage(error));
+    } catch (err) {
+      logError(err, 'onApprove');
+      showToast('error', 'Approval Error', extractErrorMessage(err));
     } finally {
       setIsApproving(false);
     }
   };
 
-  const handleCancelTask = () => {
-    if (!task?.id) {
-      showToast('error', 'Task ID not found', 'Unable to cancel task without ID.');
-      return;
-    }
+  const onCancel = () => {
+    if (!task?.id) return;
     cancelTask(task.id);
   };
 
@@ -135,103 +128,90 @@ const TaskTrackingScreen = () => {
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        scrollEnabled={!isMapInteracting}
       >
         <ContentWrapper>
           {loading ? (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-              <Loading message='Loading task tracking' />
-            </View>
-          ) : error ? (
-            <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.red }}>Error: {error}</Text>
+            <View style={styles.center}><Loading message='Loading task...' /></View>
           ) : task ? (
             <>
               <Text style={styles.title}>{task.title}</Text>
               <View style={styles.categoryAndOfferContainer}>
-                {task?.category && <Tag label={task.category} />}
+                {task.category && <Tag label={task.category} />}
                 <Text style={styles.finalOffer}>Ksh. {task.offer}</Text>
               </View>
-
               <Text style={styles.subTitle}>Description</Text>
               <Text style={styles.description}>{task.description}</Text>
-
               <Text style={styles.subTitle}>Progress</Text>
               {progress !== null ? (
                 <>
-                  <View style={styles.progressBarContainer}>
-                    <ProgressBar percentage={progress} />
-                  </View>
+                  <View style={styles.progressBarContainer}><ProgressBar percentage={progress} /></View>
                   <Text style={styles.status}>Status: <Text style={styles.statusState}>{formatStatus(task.status)}</Text></Text>
                 </>
               ) : (
-                <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>No progress data available.</Text>
+                <Text style={styles.description}>No progress data</Text>
               )}
-
               <Text style={styles.subTitle}>Location</Text>
               <Text style={styles.description}>{task.location}</Text>
-              <View style={[styles.mapViewContainer, { height: mapHeight }]}>
-                {task.latitude !== null && task.longitude !== null && (
-                  <DynamicMapView
-                    latitude={task.latitude}
-                    longitude={task.longitude}
-                    label={task.location}
-                    style={[{ height: '100%' }, { width: '100%' }]}
-                  />
-                )}
+
+              <View
+                style={[styles.mapViewContainer, { height: mapHeight }]}
+                onTouchStart={() => setIsMapInteracting(true)}
+                onTouchEnd={() => setIsMapInteracting(false)}
+                onTouchCancel={() => setIsMapInteracting(false)}
+              >
+                <DynamicMapView
+                  latitude={task.latitude!}
+                  longitude={task.longitude!}
+                  label={task.location}
+                  style={{ height: '100%', width: '100%' }}
+                />
               </View>
               <TouchableOpacity onPress={toggleMapHeight}>
                 <FontAwesome6 name={mapHeight === hp('30%') ? 'expand' : 'compress'} size={24} color={colors.text.bright} style={styles.resizeIcon} />
               </TouchableOpacity>
-
               <Text style={styles.subTitle}>Tasker</Text>
               {task.taskerAssigned ? (
                 <View style={styles.tasker}>
                   <View style={styles.imageContainer}>
-                    <Image
-                      source={task.taskerAssigned?.profilePicture ? { uri: task.taskerAssigned.profilePicture } : require('@/assets/images/user.jpg')}
-                      style={styles.image}
-                    />
+                    <Image source={task.taskerAssigned.profilePicture ? { uri: task.taskerAssigned.profilePicture } : require('@/assets/images/user.jpg')} style={styles.image} />
                   </View>
                   <View style={styles.taskerDetails}>
-                    <Text style={styles.name}>{task.taskerAssigned?.username}</Text>
-                    <StarRating rating={task.taskerAssigned?.rating!} size={16} />
+                    <Text style={styles.name}>{task.taskerAssigned.username}</Text>
+                    <StarRating rating={task.taskerAssigned.rating!} size={16} />
                   </View>
                   <View style={styles.buttonContainer}>
-                    <Button title="Contact" type='secondary' small onPress={onContactTasker} />
+                    <Button title='Contact' type='secondary' small onPress={onContactTasker} />
                   </View>
                 </View>
               ) : (
-                <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>No tasker assigned yet.</Text>
+                <Text style={styles.description}>No tasker assigned yet</Text>
               )}
-
               <View style={styles.ctaContainer}>
                 {(task.status === "IN_PROGRESS" || task.status === "REVIEW") && (
-                  <Button
-                    title="APPROVE TASK COMPLETION"
-                    type="primary"
-                    onPress={handleApproveTaskCompletion}
-                    loading={isApproving}
-                  />
+                  <Button title='APPROVE TASK COMPLETION' type='primary' onPress={onApprove} loading={isApproving} />
                 )}
                 {(task.status !== "CANCELLED" && task.status !== "COMPLETED") && (
-                  <Button
-                    title="CANCEL TASK"
-                    type="cancel"
-                    onPress={handleCancelTask}
-                    loading={isCancelling}
-                  />
+                  <Button title='CANCEL TASK' type='cancel' onPress={onCancel} loading={isCancelling} />
                 )}
               </View>
             </>
           ) : (
-            <Text style={{ fontSize: moderateScale(16, 0.2), color: colors.text.light }}>No task details available.</Text>
+            <View style={styles.center}>
+              <Text style={styles.errorText}>No task data available</Text>
+              <TouchableOpacity onPress={onRefresh} style={styles.retryButton}>
+                <Ionicons name='refresh' size={24} color={colors.text.green} />
+                <Text style={styles.retryText}>Tap to retry</Text>
+              </TouchableOpacity>
+            </View>
           )}
         </ContentWrapper>
       </ScrollView>
     </ScreenBackground>
-  )
-}
+  );
+};
 
-export default TaskTrackingScreen
+export default TaskTrackingScreen;
 
 const styles = StyleSheet.create({
   scrollContainer: {
@@ -239,6 +219,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: hp('2%'),
     paddingBottom: hp('4%'),
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: hp('2%'),
+  },
+  errorText: {
+    fontSize: moderateScale(16),
+    color: colors.text.light,
+    textAlign: 'center',
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: hp('1%'),
+    paddingHorizontal: hp('2%'),
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.text.green,
+  },
+  retryText: {
+    color: colors.text.green,
+    fontFamily: 'poppins-medium',
+    fontSize: moderateScale(14, 0.2),
+    marginLeft: 8,
   },
   title: {
     fontSize: moderateScale(22, 0.2),
@@ -248,7 +254,6 @@ const styles = StyleSheet.create({
   },
   categoryAndOfferContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     alignItems: 'center',
     marginBottom: hp('2%'),
   },
@@ -257,16 +262,6 @@ const styles = StyleSheet.create({
     fontFamily: 'poppins-bold',
     color: colors.text.green,
     marginLeft: wp('8%'),
-  },
-  status: {
-    color: colors.text.light,
-    fontSize: moderateScale(14, 0.2),
-    fontFamily: 'poppins-regular',
-  },
-  statusState: {
-    color: colors.text.bright,
-    fontSize: moderateScale(14, 0.2),
-    fontFamily: 'poppins-bold',
   },
   subTitle: {
     color: colors.text.bright,
@@ -281,6 +276,15 @@ const styles = StyleSheet.create({
   },
   progressBarContainer: {
     marginVertical: hp('1%'),
+  },
+  status: {
+    fontSize: moderateScale(14, 0.2),
+    fontFamily: 'poppins-regular',
+    color: colors.text.light,
+  },
+  statusState: {
+    fontFamily: 'poppins-bold',
+    color: colors.text.bright,
   },
   mapViewContainer: {
     width: '100%',
@@ -297,7 +301,6 @@ const styles = StyleSheet.create({
   },
   tasker: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     alignItems: 'center',
     paddingVertical: wp('2%'),
   },
@@ -305,7 +308,6 @@ const styles = StyleSheet.create({
     width: wp('16%'),
     height: wp('16%'),
     borderRadius: wp('8%'),
-    borderStyle: 'solid',
     borderWidth: 2,
     borderColor: colors.component.stroke,
     overflow: 'hidden',
