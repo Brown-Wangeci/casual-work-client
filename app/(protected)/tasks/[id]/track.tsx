@@ -191,7 +191,7 @@ const TaskTrackingScreen = () => {
                 {(task.status === "IN_PROGRESS" || task.status === "REVIEW") && (
                   <Button title='APPROVE TASK COMPLETION' type='primary' onPress={onApprove} loading={isApproving} />
                 )}
-                {(task.status !== "CANCELLED" && task.status !== "COMPLETED") && (
+                {(task.status !== "CANCELLED" && task.status !== "COMPLETED"  && task.status !== "REVIEW") && (
                   <Button title='CANCEL TASK' type='cancel' onPress={onCancel} loading={isCancelling} />
                 )}
               </View>
