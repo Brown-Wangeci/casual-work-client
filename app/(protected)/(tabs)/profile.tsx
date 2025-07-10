@@ -155,6 +155,7 @@ const ProfileScreen = () => {
   const postedTasks = userInProfile.tasksPosted ?? 0
   const completedTasks = userInProfile.tasksCompleted ?? 0
   const rating = userInProfile.rating ?? 0
+  const formarttedRating = rating ? parseFloat(rating.toFixed(1)) : 0
 
   return (
     <ScreenBackground>
@@ -245,8 +246,8 @@ const ProfileScreen = () => {
                   width={wp('42%')}
                   height={moderateScale(100, 0.2)}
                 >
-                  <Text style={styles.number}>{rating}</Text>
-                  <StarRating rating={rating} size={moderateScale(16, 0.2)} />
+                  <Text style={styles.number}>{formarttedRating}</Text>
+                  <StarRating rating={formarttedRating} size={moderateScale(16, 0.2)} />
                   <Text style={styles.subText}>Rating</Text>
                 </SummaryCard>
               </View>

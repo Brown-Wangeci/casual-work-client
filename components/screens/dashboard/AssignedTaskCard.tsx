@@ -97,6 +97,7 @@ const styles = StyleSheet.create({
   },
   locationAndDateOuterContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginVertical: hp(0.5),

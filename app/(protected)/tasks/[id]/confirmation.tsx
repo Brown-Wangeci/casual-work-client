@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     borderRadius: wp('8%'),
     borderStyle: 'solid',
     borderWidth: 2,
-    borderColor: colors.component.stroke,
+    borderColor: colors.component.green.bg,
     overflow: 'hidden',
   },
   image: {

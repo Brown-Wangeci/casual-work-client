@@ -73,6 +73,7 @@ const UserProfileScreen = () => {
   const postedTasks = userData?.tasksPosted || 0;
   const completedTasks = userData?.tasksCompleted || 0;
   const rating = userData?.rating || 0;
+   const formarttedRating = rating ? parseFloat(rating.toFixed(1)) : 0
   const safePhone = userData?.phone?.replace(/[^0-9]/g, '');
 
   return (
@@ -110,16 +111,19 @@ const UserProfileScreen = () => {
               </View>
 
               <View style={styles.contactSection}>
-                <TouchableOpacity onPress={() => safePhone && Linking.openURL(`tel:${safePhone}`)}>
+                <TouchableOpacity style={styles.contactContainer} onPress={() => safePhone && Linking.openURL(`tel:${safePhone}`)}>
                   <Ionicons name="call-outline" size={20} color={colors.text.bright} />
+                  <Text style={styles.contactText}>Call</Text>
                 </TouchableOpacity>
-                <Vr />
-                <TouchableOpacity onPress={() => safePhone && Linking.openURL(`sms:${safePhone}`)}>
+                {/* <Vr /> */}
+                <TouchableOpacity style={[styles.contactContainer, { borderColor: colors.component.stroke, borderLeftWidth: 1 }]} onPress={() => safePhone && Linking.openURL(`sms:${safePhone}`)}>
                   <Ionicons name="chatbubble-ellipses-outline" size={20} color={colors.text.bright} />
+                  <Text style={styles.contactText}>Message</Text>
                 </TouchableOpacity>
-                <Vr />
-                <TouchableOpacity onPress={() => safePhone && Linking.openURL(`https://wa.me/${safePhone}`)}>
+                {/* <Vr /> */}
+                <TouchableOpacity style={[styles.contactContainer, { borderColor: colors.component.stroke, borderLeftWidth: 1 }]} onPress={() => safePhone && Linking.openURL(`https://wa.me/${safePhone}`)}>
                   <FontAwesome name="whatsapp" size={20} color={colors.text.bright} />
+                  <Text style={styles.contactText}>WhatsApp</Text>
                 </TouchableOpacity>
               </View>
 
@@ -153,8 +157,8 @@ const UserProfileScreen = () => {
                     width={wp('42%')}
                     height={moderateScale(100, 0.2)}
                   >
-                    <Text style={styles.number}>{rating}</Text>
-                    <StarRating rating={rating} size={moderateScale(16, 0.2)} />
+                    <Text style={styles.number}>{formarttedRating}</Text>
+                    <StarRating rating={formarttedRating} size={moderateScale(16, 0.2)} />
                     <Text style={styles.subText}>Rating</Text>
                   </SummaryCard>
                 </View>
@@ -222,5 +226,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     width: '100%',
     marginVertical: moderateScale(10, 0.2),
+  },
+  contactContainer: {
+    flexDirection: 'column',
+    flex: 1,
+    alignItems: 'center',
+    gap: moderateScale(4, 0.2),
+  },
+  contactText: {
+    color: colors.text.bright,
+    fontSize: moderateScale(12, 0.2),
+    fontFamily: 'poppins-regular',
+    textAlign: 'center',
   },
 });

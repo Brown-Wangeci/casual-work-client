@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     height: wp('16%'),
     borderRadius: wp('8%'),
     borderWidth: 2,
-    borderColor: colors.component.stroke,
+    borderColor: colors.component.green.bg,
     overflow: 'hidden',
   },
   image: {

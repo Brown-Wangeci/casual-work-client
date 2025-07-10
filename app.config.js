@@ -16,6 +16,12 @@ export default {
     cli: {
       appVersionSource: "remote"
     },
+    updates: {
+      url: "https://u.expo.dev/eb3293d4-5dbd-46f1-97b1-ffa47ba78d94"
+    },
+    runtimeVersion: {
+      policy: "appVersion"
+    },
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.brownwangeci.taskmarketplace"
@@ -34,8 +40,8 @@ export default {
       config: {
         googleMaps: {
           apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
-        },
-      },
+        }
+      }
     },
     web: {
       bundler: "metro",
