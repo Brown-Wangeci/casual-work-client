@@ -137,7 +137,7 @@ const PostTaskScreen = () => {
                     activeOpacity={0.7}
                 >
                     <Text style={task.location ? styles.locationText : styles.placeholderText}>
-                    {task.location || 'Select Location'}
+                      {task.location || 'Select Location'}
                     </Text>
                 </TouchableOpacity>
               </View>

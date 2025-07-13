@@ -8,11 +8,14 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 import { useTaskCreationStore } from '@/stores/taskCreationStore';
 import DynamicMapView from '@/components/common/DynamicMapView';
 import colors from '@/constants/Colors';
+import Button from '@/components/ui/Button';
+import { useRouter } from 'expo-router';
 
 
 const LocationPickerScreen = () => {
 
   const task = useTaskCreationStore((state) => state.task);
+  const router = useRouter();
 
   return (
     <ScreenBackground>
@@ -22,16 +25,21 @@ const LocationPickerScreen = () => {
           <CustomPlacesAutocomplete />
         </View>
         { task.latitude && task.longitude ? (
-          <View
-          style={[styles.mapViewContainer, { height: hp('50%') }]}
-        >
-          <DynamicMapView
-            latitude={task.latitude!}
-            longitude={task.longitude!}
-            label={task.location}
-            style={{ height: '100%', width: '100%' }}
-          />
-        </View>
+          <>
+            <View
+              style={[styles.mapViewContainer, { height: hp('50%') }]}
+            >
+              <DynamicMapView
+                latitude={task.latitude!}
+                longitude={task.longitude!}
+                label={task.location}
+                style={{ height: '100%', width: '100%' }}
+              />
+            </View>
+            <View style={{ width: '100%', alignItems: 'center' }}>
+              <Button type='primary' small title="CONFIRM LOCATION" onPress={() =>  router.push('/post-task')} />
+            </View>
+          </>
         ) : (
           null
         )}  

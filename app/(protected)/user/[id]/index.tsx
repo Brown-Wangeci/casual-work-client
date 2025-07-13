@@ -19,7 +19,6 @@ import StarRating from '@/components/common/StarRating';
 import { useEffect, useState } from 'react';
 import { User } from '@/constants/Types';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
-import Vr from '@/components/common/Vr';
 import ScreenBackground from '@/components/layout/ScreenBackground';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import api from '@/lib/utils/axios';
@@ -27,6 +26,7 @@ import { useTempUserStore } from '@/stores/tempUserStore';
 import Loading from '@/components/common/Loading';
 import { logError, extractErrorMessage } from '@/lib/utils';
 import { showToast } from '@/lib/utils/showToast';
+import { safeFormatPhoneNumber } from '@/lib/utils/formatPhone';
 
 const UserProfileScreen = () => {
   const [userData, setUserData] = useState<User | null>(null);
@@ -73,8 +73,8 @@ const UserProfileScreen = () => {
   const postedTasks = userData?.tasksPosted || 0;
   const completedTasks = userData?.tasksCompleted || 0;
   const rating = userData?.rating || 0;
-   const formarttedRating = rating ? parseFloat(rating.toFixed(1)) : 0
-  const safePhone = userData?.phone?.replace(/[^0-9]/g, '');
+  const formarttedRating = rating ? parseFloat(rating.toFixed(1)) : 0
+  const safePhone = safeFormatPhoneNumber(userData?.phone || '');  
 
   return (
     <ScreenBackground>

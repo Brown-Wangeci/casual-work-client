@@ -1,12 +1,10 @@
 import {
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import { moderateScale } from 'react-native-size-matters';
 import colors from '@/constants/Colors';
 import ContentWrapper from '@/components/layout/ContentWrapper';
 import ScreenBackground from '@/components/layout/ScreenBackground';
