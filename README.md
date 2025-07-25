@@ -1,50 +1,142 @@
-# Welcome to your Expo app 👋
+# Task Marketplace (casual-work-client)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A modern mobile app for posting, discovering, and completing local tasks and gigs. Built with Expo, React Native, and TypeScript.
 
-## Get started
+## Table of Contents
+- [Overview](#overview)
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [Scripts](#scripts)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
 
-1. Install dependencies
 
+---
+
+## Overview
+
+**Task Marketplace** is a platform that connects people who need tasks done (Posters) with those willing to complete them (Taskers). Users can post tasks, apply for tasks, assign and track progress, and rate each other upon completion. The app is designed for local, real-world services such as cleaning, delivery, tech help, and more.
+
+## Features
+
+- **User Authentication**: Register, log in, and manage your profile.
+- **Task Posting**: Create new tasks with details, category, location, and offer.
+- **Task Feed**: Browse available tasks and apply as a Tasker.
+- **Task Management**: View tasks you posted, were assigned, or applied for.
+- **Task Application & Assignment**: Apply for tasks, assign Taskers, and track status.
+- **Progress Tracking**: Update and monitor task progress.
+- **Ratings & Reviews**: Rate and review users after task completion.
+- **Location Integration**: Use Google Maps for location picking and task display.
+- **Responsive UI**: Mobile-first, clean, and modern design.
+
+## User Roles
+- **Poster**: Users who post tasks and select Taskers.
+- **Tasker**: Users who apply for and complete tasks. (Users can be both!)
+
+## Screenshots
+*Add screenshots of the main screens here (Dashboard, Task Feed, Post Task, Profile, etc.)*
+
+## Tech Stack
+- **Framework**: [Expo](https://expo.dev), [React Native](https://reactnative.dev), [TypeScript](https://www.typescriptlang.org/)
+- **Navigation**: [expo-router](https://expo.github.io/router/)
+- **State Management**: [zustand](https://github.com/pmndrs/zustand)
+- **UI**: Custom components, [@expo/vector-icons](https://docs.expo.dev/versions/latest/sdk/vector-icons/)
+- **APIs**: [axios](https://axios-http.com/), Google Maps/Places
+
+
+## Getting Started
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) (v18+ recommended)
+- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
+- [Expo CLI](https://docs.expo.dev/get-started/installation/)
+
+### Installation
+1. **Clone the repository:**
+   ```bash
+   git clone <your-repo-url>
+   cd casual-work-client
+   ```
+2. **Install dependencies:**
    ```bash
    npm install
+   # or
+   yarn install
    ```
+3. **Set up environment variables:**
+   - Copy `.env.example` to `.env` and fill in required values (see [Environment Variables](#environment-variables)).
 
-2. Start the app
-
+4. **Start the development server:**
    ```bash
-    npx expo start
+   npx expo start
    ```
+   - Use the QR code to open in Expo Go, or run on an emulator/simulator.
 
-In the output, you'll find options to open the app in a
+### Build
+- **Android:**
+  ```bash
+  npm run android
+  ```
+- **iOS:**
+  ```bash
+  npm run ios
+  ```
+- **Web:**
+  ```bash
+  npm run web
+  ```
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+### Reset Project
+To reset to a blank state (removes all app data and code, keeps starter template):
 ```bash
 npm run reset-project
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Environment Variables
+The app uses environment variables for API keys and configuration. Set these in a `.env` file at the project root:
 
-## Learn more
+- `APP_ENV` (development | preview | production)
+- `EXPO_PUBLIC_API_URL` (your backend API endpoint)
+- `EXPO_PUBLIC_SERVICE_FEE` (service fee percentage or value)
+- `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` (Google Maps API key)
+- `EXPO_PUBLIC_GOOGLE_PLACES_API_KEY` (Google Places API key)
+- `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` (Google OAuth client ID for Android)
+- `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` (Google OAuth client ID for Web)
 
-To learn more about developing your project with Expo, look at the following resources:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Scripts
+- `npm start` — Start Expo development server
+- `npm run android` — Run app on Android device/emulator
+- `npm run ios` — Run app on iOS simulator
+- `npm run web` — Run app in web browser
+- `npm run test` — Run tests with Jest
+- `npm run lint` — Lint codebase
+- `npm run reset-project` — Reset to blank starter
 
-## Join the community
+## Project Structure
+```
+app/                # App screens and routing
+components/         # Reusable UI and screen components
+constants/          # Static data, types, and config
+hooks/              # Custom React hooks
+lib/                # Utilities and helpers
+stores/             # Zustand state stores
+assets/             # Images, fonts, etc.
+scripts/            # Project scripts (e.g., reset-project.js)
+```
 
-Join our community of developers creating universal apps.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Contributing
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/your-feature`)
+3. Commit your changes (`git commit -am 'Add new feature'`)
+4. Push to the branch (`git push origin feature/your-feature`)
+5. Open a Pull Request
+
+
+---
+
+*This project is built with ❤️ using Expo and React Native.*
