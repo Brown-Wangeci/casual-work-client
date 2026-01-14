@@ -11,7 +11,6 @@ A modern mobile app for posting, discovering, and completing local tasks and gig
 - [Environment Variables](#environment-variables)
 - [Scripts](#scripts)
 - [Project Structure](#project-structure)
-- [Contributing](#contributing)
 
 
 ---
@@ -189,15 +188,6 @@ stores/             # Zustand state stores
 assets/             # Images, fonts, etc.
 scripts/            # Project scripts (e.g., reset-project.js)
 ```
-
-
-## Contributing
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/your-feature`)
-3. Commit your changes (`git commit -am 'Add new feature'`)
-4. Push to the branch (`git push origin feature/your-feature`)
-5. Open a Pull Request
-
 
 ---
 
