@@ -37,6 +37,33 @@ A modern mobile app for posting, discovering, and completing local tasks and gig
 - **Tasker**: Users who apply for and complete tasks. (Users can be both!)
 
 ## Screenshots
+<table>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/eef318d3-1104-40c7-a6de-c47863eeb5ab" width="250"/></td>
+    <td><img src="https://github.com/user-attachments/assets/b885037f-9d6d-4a00-af5f-41ff98e60a9b" width="250"/></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/3c9f713e-81d6-481e-9e74-850d8a5bcacb" width="250"/></td>
+    <td><img src="https://github.com/user-attachments/assets/6400e648-4a36-4e07-8a72-e5a01cfc0c3f" width="250"/></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/d3cd74f1-a5c1-496f-b3c3-9aaece3cb1a8" width="250"/></td>
+    <td><img src="https://github.com/user-attachments/assets/21c2df62-14d1-4e86-b1c0-983d8a373980" width="250"/></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/1dc0b19e-fae4-40ed-8bd0-18509b859f7c" width="250"/></td>
+    <td><img src="https://github.com/user-attachments/assets/a15fb291-0429-439a-bffb-6c79a7cdfe7f" width="250"/></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/c50abc36-606a-40a2-a40c-14a3a1c8ea2e" width="250"/></td>
+    <td><img src="https://github.com/user-attachments/assets/0df91030-4419-40c6-93ea-87a2c59f1d7f" width="250"/></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <img src="https://github.com/user-attachments/assets/12385255-4fde-44be-a40f-72e054c6a61a" width="250"/>
+    </td>
+  </tr>
+</table>
 ![splash-screen](https://github.com/user-attachments/assets/eef318d3-1104-40c7-a6de-c47863eeb5ab)
 ![login-screen](https://github.com/user-attachments/assets/b885037f-9d6d-4a00-af5f-41ff98e60a9b)
 ![create-account-screen](https://github.com/user-attachments/assets/3c9f713e-81d6-481e-9e74-850d8a5bcacb)
